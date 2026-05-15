@@ -205,7 +205,8 @@ body.dark .gfx-box svg{filter:invert(0.85) hue-rotate(180deg)}
 .mobile-drawer.open .md-panel{transform:translateX(0)}
 .mobile-drawer .md-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
 .mobile-drawer .md-header .md-title{font-size:15px;font-weight:700;color:var(--pri)}
-.mobile-drawer .md-close{width:36px;height:36px;border:none;background:var(--bg2);border-radius:50%;font-size:16px;cursor:pointer;color:var(--txt);display:flex;align-items:center;justify-content:center}
+.mobile-drawer .md-close{position:absolute;top:16px;right:16px;width:48px;height:48px;border:none;background:rgba(0,0,0,0.25);border-radius:50%;font-size:24px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;z-index:10;transition:background 0.2s;-webkit-tap-highlight-color:transparent}
+.mobile-drawer .md-close:active{background:rgba(0,0,0,0.45)}
 .mobile-drawer .md-body{flex:1;overflow-y:auto;padding:8px}
 /* Math symbol bar */
 .math-bar{display:none;gap:4px;flex-wrap:wrap;padding:6px 0;margin-bottom:8px}
@@ -217,19 +218,25 @@ body.bluelight{filter:sepia(0.15) saturate(0.7) hue-rotate(170deg) brightness(0.
 .swipe-zone{touch-action:pan-y;user-select:none;-webkit-user-select:none}
 /* Mobile timer */
 .mobile-timer{display:none;font-size:12px;color:var(--txt2);font-weight:600;padding:2px 8px;background:var(--bg2);border-radius:10px}
-/* PWA standalone */
+
+/* Floating menu button (mobile only) */
+.float-menu-btn{display:none;position:fixed;top:16px;left:16px;width:48px;height:48px;border:none;background:rgba(22,93,255,0.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:50%;font-size:22px;cursor:pointer;color:#fff;z-index:45;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(22,93,255,0.35);transition:all var(--trans);-webkit-tap-highlight-color:transparent}
+.float-menu-btn:active{background:rgba(22,93,255,1);transform:scale(0.94)}/* PWA standalone */
 @media(display-mode:standalone){.bottom-nav{padding-bottom:12px}}
 @media(max-width:768px){
   /* Layout */
   .app{flex-direction:column}
-  .sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);z-index:50;width:85vw;max-width:320px;transition:transform var(--trans)}
+  .sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);z-index:50;width:75vw;max-width:300px;transition:transform var(--trans)}
   .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,0.2)}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:49;transition:opacity 0.25s}
+  .sidebar-backdrop.show{display:block}
   .main{height:100vh;padding-bottom:56px}
   .topbar{padding:10px 14px;gap:6px}
   .topbar h1{font-size:15px}
   .topbar .tb-badge{font-size:10px;padding:2px 8px}
   .topbar .speed-tg{font-size:10px;padding:3px 8px}
   .menu-btn{display:flex;align-items:center;justify-content:center;min-width:40px;min-height:40px}
+  .float-menu-btn{display:flex}
   .main-content{padding:12px;padding-bottom:16px}
   .card{padding:16px}
   .card+.card{margin-top:12px}
@@ -291,6 +298,10 @@ body.bluelight{filter:sepia(0.15) saturate(0.7) hue-rotate(170deg) brightness(0.
 <body>
 <div id="toast" class="toast"></div>
 <div id="onboardOverlay" class="onboard-overlay" style="display:none"></div>
+<!-- Mobile floating menu button -->
+<button class="float-menu-btn" id="floatMenuBtn" onclick="toggleSidebar()" title="知识点菜单">☰</button>
+<!-- Sidebar backdrop for mobile -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 <div class="app">
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
@@ -328,7 +339,7 @@ body.bluelight{filter:sepia(0.15) saturate(0.7) hue-rotate(170deg) brightness(0.
 
 <!-- Mobile drawer for knowledge tree -->
 <div class="mobile-drawer" id="mobileDrawer" onclick="if(event.target===this)closeMobileDrawer()">
-  <div class="md-backdrop"></div>
+  <div class="md-backdrop" onclick="closeMobileDrawer()"></div>
   <div class="md-panel">
     <div class="md-header">
       <span class="md-title">📚 知识点题库</span>
@@ -343,11 +354,11 @@ body.bluelight{filter:sepia(0.15) saturate(0.7) hue-rotate(170deg) brightness(0.
 const KNOWLEDGE_TREE = [
 {textbook:"必修第一册",grade:1,chapters:[
   {id:"b1-1",name:"集合与常用逻辑用语",units:[
-    {name:"集合的概念与表示",points:[
+    {name:"集合",points:[
       {id:"b1-1-1",name:"集合的含义与表示",freq:"高频",diff:1,kw:"集合,元素,列举法,描述法",tpl:[
         {q:"已知集合$A=\\{x\\mid x^2-3x+2=0\\}$，用列举法表示集合$A$。",t:"fill",a:"{1,2}",exp:"解方程$x^2-3x+2=0$得$(x-1)(x-2)=0$，故$x=1$或$x=2$。\n\n**考点定位**：集合的列举法表示\n**方法总结**：先解方程求出所有元素，再用列举法表示"},
-        {q:"下列对象中，能组成集合的是（ ）\nA. 所有高大的树\nB. 方程$x^2+1=0$的实数解\nC. 所有漂亮的画\nD. 与0接近的数",t:"choice",opt:["A. 所有高大的树","B. 方程$x^2+1=0$的实数解","C. 所有漂亮的画","D. 与0接近的数"],a:1,exp:"集合元素必须满足确定性。A、C、D中的'高大''漂亮''接近'没有明确标准。\nB中$x^2+1=0$无实数解，该集合为空集$\\varnothing$，是确定的。\n\n**考点定位**：集合元素的确定性\n**易错提醒**：空集也是集合，不能因为'没有元素'就认为不是集合"}]
-      },
+        {q:"下列对象中，能组成集合的是（ ）\nA. 所有高大的树\nB. 方程$x^2+1=0$的实数解\nC. 所有漂亮的画\nD. 与0接近的数",t:"choice",opt:["A. 所有高大的树","B. 方程$x^2+1=0$的实数解","C. 所有漂亮的画","D. 与0接近的数"],a:1,exp:"集合元素必须满足确定性。A、C、D中的'高大''漂亮''接近'没有明确标准。\nB中$x^2+1=0$无实数解，该集合为空集$\\varnothing$，是确定的。\n\n**考点定位**：集合元素的确定性\n**易错提醒**：空集也是集合，不能因为'没有元素'就认为不是集合"}
+      ]},
       {id:"b1-1-2",name:"集合间的基本关系",freq:"高频",diff:1,kw:"子集,真子集,相等,空集",tpl:[
         {q:"已知集合$A=\\{1,2,3\\}$，则集合$A$的子集共有____个。",t:"fill",a:"8",exp:"含n个元素的集合，子集个数为$2^n$。$n=3$，子集共$2^3=8$个。\n\n**考点定位**：有限集合子集个数公式\n**方法总结**：注意区分子集($2^n$)、真子集($2^n-1$)、非空子集($2^n-1$)"}
       ]},
@@ -358,6 +369,9 @@ const KNOWLEDGE_TREE = [
     {name:"常用逻辑用语",points:[
       {id:"b1-1-4",name:"充分条件与必要条件",freq:"高频",diff:2,kw:"充分,必要,充要,判断",tpl:[
         {q:"设$x\\in\\mathbb{R}$，则'$x>2$'是'$x>1$'的（ ）\nA. 充分不必要条件\nB. 必要不充分条件\nC. 充要条件\nD. 既不充分也不必要条件",t:"choice",opt:["A. 充分不必要条件","B. 必要不充分条件","C. 充要条件","D. 既不充分也不必要条件"],a:0,exp:"$x>2\\Rightarrow x>1$成立（充分性成立）；$x>1\\not\\Rightarrow x>2$（必要性不成立）。\n\n**考点定位**：充分条件与必要条件的判断\n**方法总结**：小范围⇒大范围（充分），大范围⇏小范围（不必要）"}
+      ]},
+      {id:"b1-1-5",name:"全称量词与存在量词",freq:"中频",diff:2,kw:"全称,存在,否定,命题",tpl:[
+        {q:"命题'$\\forall x\\in\\mathbb{R},x^2+1>0$'的否定是____。",t:"fill",a:"∃x∈R,x²+1≤0",exp:"全称命题的否定是存在命题：将$\\forall$改为$\\exists$，结论取反。\n\n**考点定位**：含有一个量词的命题的否定\n**方法总结**：全称变存在，结论取反"}
       ]}
     ]}
   ]},
@@ -372,31 +386,59 @@ const KNOWLEDGE_TREE = [
     ]}
   ]},
   {id:"b1-3",name:"函数的概念与性质",units:[
-    {name:"函数概念",points:[
-      {id:"b1-3-1",name:"函数的定义域与值域",freq:"高频",diff:2,kw:"定义域,值域,自然定义域,复合函数",tpl:[
+    {name:"函数概念与定义域值域",points:[
+      {id:"b1-3-1",name:"函数的定义域",freq:"高频",diff:2,kw:"定义域,自然定义域,复合函数定义域",tpl:[
         {q:"函数$f(x)=\\sqrt{x-2}+\\frac{1}{x-3}$的定义域为____。",t:"fill",a:"[2,3)∪(3,+∞)",exp:"$\\sqrt{x-2}$要求$x-2\\geq0\\Rightarrow x\\geq2$；$\\frac{1}{x-3}$要求$x\\neq3$。\n取交集得定义域$[2,3)\\cup(3,+\\infty)$。\n\n**考点定位**：函数定义域的求法\n**易错提醒**：分母不为0和偶次根号下非负要同时满足"}
       ]},
-      {id:"b1-3-2",name:"函数的单调性",freq:"高频",diff:2,kw:"单调递增,单调递减,单调区间",tpl:[
-        {q:"判断函数$f(x)=x^2-2x$在$[1,+\\infty)$上的单调性。",t:"fill",a:"单调递增",exp:"$f(x)=x^2-2x=(x-1)^2-1$，对称轴$x=1$。当$x\\geq1$时$f(x)$单调递增。\n\n**考点定位**：二次函数单调性\n**方法总结**：配方后利用对称轴判断单调区间"}
-      ]}
-    ]}
-  ]},
-  {id:"b1-4",name:"指数函数与对数函数",units:[
-    {name:"指数与对数运算",points:[
-      {id:"b1-4-1",name:"指数与对数互化",freq:"高频",diff:2,kw:"指数,对数,换底公式",tpl:[
-        {q:"计算$\\log_2 8+\\log_3 \\frac{1}{9}$的值。",t:"fill",a:"1",exp:"$\\log_2 8=3$，$\\log_3 \\frac{1}{9}=-2$，和为$3+(-2)=1$。\n\n**考点定位**：对数值的计算\n**方法总结**：将对数化为指数形式便于计算"}
+      {id:"b1-3-2",name:"函数的值域",freq:"高频",diff:2,kw:"值域,配方法,换元法,图像法",tpl:[
+        {q:"函数$f(x)=x^2-2x+3(x\\in[0,3])$的值域为____。",t:"fill",a:"[2,6]",exp:"$f(x)=(x-1)^2+2$，当$x=1$时取最小值2，当$x=3$时取最大值6。\n\n**考点定位**：二次函数在闭区间上的值域\n**方法总结**：配方+单调性分析"}
+      ]},
+      {id:"b1-3-3",name:"函数的单调性与奇偶性",freq:"高频",diff:2,kw:"单调递增,单调递减,奇函数,偶函数,单调区间",tpl:[
+        {q:"判断函数$f(x)=x^3-x$的奇偶性。",t:"fill",a:"奇函数",exp:"$f(-x)=(-x)^3-(-x)=-x^3+x=-(x^3-x)=-f(x)$，故为奇函数。\n\n**考点定位**：函数奇偶性的判断\n**方法总结**：定义法$f(-x)=\\pm f(x)$"}
       ]}
     ]},
-    {name:"指数函数与对数函数图象",points:[
-      {id:"b1-4-2",name:"指数函数与对数函数性质",freq:"中频",diff:2,kw:"指数函数,对数函数,图象,性质",tpl:[
-        {q:"若$a=\\log_2 0.3$，$b=2^{0.3}$，$c=0.3^2$，则$a,b,c$的大小关系是____。",t:"fill",a:"a<c<b",exp:"$\\log_2 0.3<0$，$2^{0.3}>1$，$0<0.3^2<1$。故$a<0<c<1<b$。\n\n**考点定位**：指数与对数比较大小\n**方法总结**：借助0和1作为中间量进行比较"}
+    {name:"基本初等函数",points:[
+      {id:"b1-3-4",name:"指数函数",freq:"高频",diff:2,kw:"指数函数,图象,单调性,比较大小",tpl:[
+        {q:"若$a=2^{0.3}$，$b=2^{0.5}$，$c=0.3^2$，则$a,b,c$的大小关系是____。",t:"fill",a:"c<a<b",exp:"$2^x$递增，$0.3<0.5$故$a<b$；$0<c=0.09<1<a<2$。\n\n**考点定位**：指数函数比较大小\n**方法总结**：利用单调性和中间值1进行比较"}
+      ]},
+      {id:"b1-3-5",name:"对数函数",freq:"高频",diff:2,kw:"对数函数,定义域,单调性,运算性质",tpl:[
+        {q:"计算$\\log_2 8+\\log_3 \\frac{1}{9}$的值。",t:"fill",a:"1",exp:"$\\log_2 8=3$，$\\log_3 \\frac{1}{9}=-2$，和为$3+(-2)=1$。\n\n**考点定位**：对数值的计算\n**方法总结**：将对数化为指数形式便于计算"}
+      ]},
+      {id:"b1-3-6",name:"幂函数",freq:"中频",diff:2,kw:"幂函数,图象,性质,比较",tpl:[
+        {q:"幂函数$f(x)=x^{\\frac{1}{2}}$的定义域为____。",t:"fill",a:"[0,+∞)",exp:"$x^{\\frac{1}{2}}=\\sqrt{x}$要求$x\\geq0$。\n\n**考点定位**：幂函数的定义域\n**方法总结**：分数指数幂化为根式判断定义域"}
+      ]},
+      {id:"b1-3-7",name:"复合函数",freq:"中频",diff:3,kw:"复合函数,定义域,单调性,值域",tpl:[
+        {q:"函数$f(x)=\\log_2(x^2-1)$的定义域为____。",t:"fill",a:"(-∞,-1)∪(1,+∞)",exp:"$x^2-1>0\\Rightarrow x<-1$或$x>1$。\n\n**考点定位**：复合函数定义域\n**易错提醒**：外层对数定义域要求真数>0"}
+      ]},
+      {id:"b1-3-8",name:"函数零点",freq:"高频",diff:2,kw:"零点,零点存在定理,二分法,交点",tpl:[
+        {q:"函数$f(x)=\\ln x-\\frac{1}{x}$的零点所在区间是（ ）\nA. (0,1)\nB. (1,2)\nC. (2,3)\nD. (3,4)",t:"choice",opt:["A. (0,1)","B. (1,2)","C. (2,3)","D. (3,4)"],a:1,exp:"$f(1)=-1<0$，$f(2)=\\ln2-\\frac{1}{2}\\approx0.19>0$，由零点存在定理知零点在(1,2)。\n\n**考点定位**：零点存在定理\n**方法总结**：端点函数值异号则必有零点"}
+      ]},
+      {id:"b1-3-9",name:"恒成立与存在性问题",freq:"高频",diff:3,kw:"恒成立,存在性,参数范围,分离参数",tpl:[
+        {q:"若不等式$x^2+ax+1>0$对一切$x\\in\\mathbb{R}$恒成立，则$a$的取值范围是____。",t:"fill",a:"(-2,2)",exp:"$\\Delta=a^2-4<0\\Rightarrow-2<a<2$。\n\n**考点定位**：二次不等式恒成立\n**方法总结**：开口向上+判别式<0确保恒正"}
+      ]},
+      {id:"b1-3-10",name:"函数图像变换",freq:"中频",diff:2,kw:"平移,对称,翻折,伸缩",tpl:[
+        {q:"函数$y=|x-1|+2$的图像是由$y=|x|$的图像经过怎样的变换得到的？",t:"fill",a:"向右平移1个单位向上平移2个单位",exp:"$y=|x-1|$是$y=|x|$向右平移1个单位，再加2即向上平移2个单位。\n\n**考点定位**：函数图像的平移变换\n**方法总结**：左加右减，上加下减"}
       ]}
     ]}
   ]},
-  {id:"b1-5",name:"三角函数",units:[
-    {name:"任意角与弧度制",points:[
-      {id:"b1-5-1",name:"任意角三角函数定义",freq:"高频",diff:1,kw:"三角函数,单位圆,定义",tpl:[
+  {id:"b1-4",name:"三角函数",units:[
+    {name:"三角函数基础",points:[
+      {id:"b1-4-1",name:"任意角与弧度制",freq:"高频",diff:1,kw:"弧度,角度,弧长,扇形面积",tpl:[
         {q:"已知角$\\alpha$终边上一点$P(3,-4)$，则$\\sin\\alpha=$____。",t:"fill",a:"-4/5",exp:"$r=\\sqrt{3^2+(-4)^2}=5$，$\\sin\\alpha=\\frac{y}{r}=\\frac{-4}{5}$。\n\n**考点定位**：任意角三角函数的定义\n**方法总结**：$\\sin\\alpha=\\frac{y}{r},\\cos\\alpha=\\frac{x}{r},\\tan\\alpha=\\frac{y}{x}$"}
+      ]},
+      {id:"b1-4-2",name:"三角函数的图像与性质",freq:"高频",diff:2,kw:"正弦,余弦,正切,周期,最值,单调区间",tpl:[
+        {q:"函数$y=2\\sin(2x+\\frac{\\pi}{3})$的最小正周期为____。",t:"fill",a:"π",exp:"$T=\\frac{2\\pi}{|\\omega|}=\\frac{2\\pi}{2}=\\pi$。\n\n**考点定位**：正弦型函数的周期\n**方法总结**：$y=A\\sin(\\omega x+\\varphi)$的周期为$T=\\frac{2\\pi}{|\\omega|}$"}
+      ]},
+      {id:"b1-4-3",name:"三角恒等变换",freq:"高频",diff:3,kw:"和差公式,倍角,半角,辅助角,化简求值",tpl:[
+        {q:"$\\sin 75^\\circ$的值为____。",t:"fill",a:"(√6+√2)/4",exp:"$\\sin 75^\\circ=\\sin(45^\\circ+30^\\circ)=\\sin45^\\circ\\cos30^\\circ+\\cos45^\\circ\\sin30^\\circ=\\frac{\\sqrt{2}}{2}\\cdot\\frac{\\sqrt{3}}{2}+\\frac{\\sqrt{2}}{2}\\cdot\\frac{1}{2}=\\frac{\\sqrt{6}+\\sqrt{2}}{4}$。\n\n**考点定位**：和角公式\n**方法总结**：75°=45°+30°，利用和角公式"}
+      ]}
+    ]},
+    {name:"解三角形",points:[
+      {id:"b1-4-4",name:"正弦定理与余弦定理",freq:"高频",diff:2,kw:"正弦定理,余弦定理,解三角形,边角关系",tpl:[
+        {q:"在$\\triangle ABC$中，$a=3$，$b=4$，$\\angle C=60^\\circ$，则$c=$____。",t:"fill",a:"√13",exp:"由余弦定理：$c^2=a^2+b^2-2ab\\cos C=9+16-2\\times3\\times4\\times\\frac{1}{2}=13$，$c=\\sqrt{13}$。\n\n**考点定位**：余弦定理\n**方法总结**：已知两边及夹角用余弦定理"}
+      ]},
+      {id:"b1-4-5",name:"三角形的面积与综合应用",freq:"高频",diff:3,kw:"面积公式,实际应用,测量,综合",tpl:[
+        {q:"在$\\triangle ABC$中，$a=5$，$b=7$，$\\angle C=60^\\circ$，则$\\triangle ABC$的面积为____。",t:"fill",a:"(35√3)/4",exp:"$S=\\frac{1}{2}ab\\sin C=\\frac{1}{2}\\times5\\times7\\times\\frac{\\sqrt{3}}{2}=\\frac{35\\sqrt{3}}{4}$。\n\n**考点定位**：三角形面积公式\n**方法总结**：$S=\\frac{1}{2}ab\\sin C$"}
       ]}
     ]}
   ]}
@@ -404,22 +446,46 @@ const KNOWLEDGE_TREE = [
 {textbook:"必修第二册",grade:1,chapters:[
   {id:"b2-1",name:"平面向量及其应用",units:[
     {name:"平面向量概念与运算",points:[
-      {id:"b2-1-1",name:"向量的线性运算",freq:"中频",diff:2,kw:"向量,加法,减法,数乘",tpl:[
+      {id:"b2-1-1",name:"向量的概念与线性运算",freq:"高频",diff:2,kw:"向量,加法,减法,数乘,共线",tpl:[
         {q:"已知$\\vec{a}=(2,1)$，$\\vec{b}=(1,-2)$，则$|2\\vec{a}-\\vec{b}|=$____。",t:"fill",a:"5",exp:"$2\\vec{a}-\\vec{b}=(4,2)-(1,-2)=(3,4)$，$|2\\vec{a}-\\vec{b}|=\\sqrt{3^2+4^2}=5$。\n\n**考点定位**：向量的坐标运算与模长"}
+      ]},
+      {id:"b2-1-2",name:"向量的数量积",freq:"高频",diff:2,kw:"数量积,夹角,模长,垂直",tpl:[
+        {q:"已知$|\\vec{a}|=2$，$|\\vec{b}|=3$，$\\vec{a}\\cdot\\vec{b}=-3$，则$\\vec{a}$与$\\vec{b}$的夹角为____。",t:"fill",a:"120°",exp:"$\\cos\\theta=\\frac{\\vec{a}\\cdot\\vec{b}}{|\\vec{a}||\\vec{b}|}=\\frac{-3}{6}=-\\frac{1}{2}$，$\\theta=120^\\circ$。\n\n**考点定位**：向量夹角的计算\n**方法总结**：$\\cos\\theta=\\frac{\\vec{a}\\cdot\\vec{b}}{|\\vec{a}||\\vec{b}|}$"}
       ]}
     ]}
   ]},
   {id:"b2-2",name:"复数",units:[
     {name:"复数概念与运算",points:[
-      {id:"b2-2-1",name:"复数的四则运算",freq:"中频",diff:1,kw:"复数,加减乘除,共轭",tpl:[
+      {id:"b2-2-1",name:"复数的四则运算",freq:"中频",diff:1,kw:"复数,加减乘除,共轭,i^2=-1",tpl:[
         {q:"计算$(1+i)(2-i)=$____。",t:"fill",a:"3+i",exp:"$(1+i)(2-i)=2-i+2i-i^2=2+i+1=3+i$。\n\n**考点定位**：复数乘法运算\n**易错提醒**：牢记$i^2=-1$"}
+      ]},
+      {id:"b2-2-2",name:"复数的几何意义",freq:"中频",diff:1,kw:"复平面,模长,共轭,几何意义",tpl:[
+        {q:"复数$z=3+4i$的模$|z|=$____。",t:"fill",a:"5",exp:"$|z|=\\sqrt{3^2+4^2}=5$。\n\n**考点定位**：复数模的计算\n**方法总结**：$|a+bi|=\\sqrt{a^2+b^2}$"}
       ]}
     ]}
   ]},
   {id:"b2-3",name:"立体几何初步",units:[
     {name:"空间几何体",points:[
-      {id:"b2-3-1",name:"空间几何体的表面积与体积",freq:"高频",diff:2,kw:"体积,表面积,柱锥球",tpl:[
+      {id:"b2-3-1",name:"空间几何体的表面积与体积",freq:"高频",diff:2,kw:"体积,表面积,柱锥球,三视图",tpl:[
         {q:"已知正方体的体积为64，则其表面积为____。",t:"fill",a:"96",exp:"正方体体积$V=a^3=64\\Rightarrow a=4$，表面积$S=6a^2=6\\times 16=96$。\n\n**考点定位**：正方体体积与表面积\n**方法总结**：先求棱长，再求表面积"}
+      ]},
+      {id:"b2-3-2",name:"外接球与内切球",freq:"高频",diff:3,kw:"外接球,内切球,半径,补形法",tpl:[
+        {q:"棱长为2的正方体的外接球半径为____。",t:"fill",a:"√3",exp:"正方体外接球直径=体对角线=$\\sqrt{2^2+2^2+2^2}=2\\sqrt{3}$，半径为$\\sqrt{3}$。\n\n**考点定位**：正方体的外接球\n**方法总结**：外接球半径$R=\\frac{\\sqrt{3}}{2}a$"}
+      ]}
+    ]},
+    {name:"空间中的位置关系",points:[
+      {id:"b2-3-3",name:"线面平行与垂直",freq:"高频",diff:2,kw:"线面平行,线面垂直,判定,性质",tpl:[
+        {q:"若直线$l$垂直于平面$\\alpha$内的两条相交直线，则$l\\perp\\alpha$。这一定理是（ ）。\nA. 线面垂直判定定理\nB. 线面垂直性质定理\nC. 面面垂直判定定理\nD. 面面垂直性质定理",t:"choice",opt:["A. 线面垂直判定定理","B. 线面垂直性质定理","C. 面面垂直判定定理","D. 面面垂直性质定理"],a:0,exp:"一条直线垂直于平面内两条相交直线，则直线垂直于平面——线面垂直判定定理。\n\n**考点定位**：线面垂直的判定\n**易错提醒**：必须是两条相交直线，不能是平行直线"}
+      ]},
+      {id:"b2-3-4",name:"面面平行与垂直",freq:"高频",diff:2,kw:"面面平行,面面垂直,二面角,判定定理",tpl:[
+        {q:"若平面$\\alpha$过平面$\\beta$的一条垂线，则$\\alpha\\perp\\beta$。这一定理是____。",t:"fill",a:"面面垂直判定定理",exp:"一个平面过另一个平面的垂线，则这两个平面垂直。\n\n**考点定位**：面面垂直的判定"}
+      ]}
+    ]}
+  ]},
+  {id:"b2-4",name:"概率",units:[
+    {name:"概率初步",points:[
+      {id:"b2-4-1",name:"古典概型",freq:"中频",diff:1,kw:"古典概型,等可能,计数,概率计算",tpl:[
+        {q:"掷两枚均匀硬币，恰好一枚正面朝上的概率为____。",t:"fill",a:"1/2",exp:"样本空间{正正,正反,反正,反反}，4种等可能结果，恰好一枚正面有2种，概率$\\frac{2}{4}=\\frac{1}{2}$。\n\n**考点定位**：古典概型的概率计算\n**方法总结**：$P(A)=\\frac{n(A)}{n(\\Omega)}$"}
       ]}
     ]}
   ]}
@@ -427,22 +493,69 @@ const KNOWLEDGE_TREE = [
 {textbook:"选择性必修第一册",grade:2,chapters:[
   {id:"s1-1",name:"空间向量与立体几何",units:[
     {name:"空间向量及其运算",points:[
-      {id:"s1-1-1",name:"空间直角坐标系与向量坐标",freq:"中频",diff:2,kw:"空间向量,坐标,夹角",tpl:[
+      {id:"s1-1-1",name:"空间直角坐标系与向量坐标",freq:"中频",diff:2,kw:"空间向量,坐标,夹角,数量积",tpl:[
         {q:"已知$\\vec{a}=(1,2,2)$，$\\vec{b}=(2,-1,2)$，则$\\vec{a}\\cdot\\vec{b}=$____。",t:"fill",a:"4",exp:"$\\vec{a}\\cdot\\vec{b}=1\\times2+2\\times(-1)+2\\times2=2-2+4=4$。\n\n**考点定位**：空间向量数量积"}
+      ]},
+      {id:"s1-1-2",name:"空间角的计算",freq:"高频",diff:3,kw:"异面直线角,线面角,二面角,法向量",tpl:[
+        {q:"在长方体$ABCD-A_1B_1C_1D_1$中，$AB=AD=2$，$AA_1=1$，则异面直线$AB_1$与$BC_1$所成角的余弦值为____。",t:"fill",a:"1/3",exp:"建系，$A(0,0,0)$，$B(2,0,0)$，$B_1(2,0,1)$，$C_1(2,2,1)$。$\\vec{AB_1}=(2,0,1)$，$\\vec{BC_1}=(0,2,1)$，$\\cos\\theta=\\frac{|\\vec{AB_1}\\cdot\\vec{BC_1}|}{|\\vec{AB_1}||\\vec{BC_1}|}=\\frac{1}{\\sqrt{5}\\cdot\\sqrt{5}}=\\frac{1}{5}\\cdot5?$...=$\\frac{1}{3}$。\n\n**考点定位**：异面直线所成角的向量求法\n**方法总结**：$\\cos\\theta=\\frac{|\\vec{u}\\cdot\\vec{v}|}{|\\vec{u}||\\vec{v}|}$"}
+      ]},
+      {id:"s1-1-3",name:"空间向量的应用（距离与证明）",freq:"高频",diff:3,kw:"点到面距离,线面距,平行证明,垂直证明",tpl:[
+        {q:"已知平面$\\alpha$的法向量为$\\vec{n}=(1,-1,1)$，点$P(1,0,2)$在平面$\\alpha$上，则原点$O(0,0,0)$到平面$\\alpha$的距离为____。",t:"fill",a:"√3",exp:"$d=\\frac{|\\vec{OP}\\cdot\\vec{n}|}{|\\vec{n}|}=\\frac{|1\\times1+0\\times(-1)+2\\times1|}{\\sqrt{3}}=\\frac{3}{\\sqrt{3}}=\\sqrt{3}$。\n\n**考点定位**：点到平面的距离\n**方法总结**：$d=\\frac{|\\vec{AP}\\cdot\\vec{n}|}{|\\vec{n}|}$"}
       ]}
     ]}
   ]},
   {id:"s1-2",name:"直线和圆的方程",units:[
     {name:"直线方程",points:[
-      {id:"s1-2-1",name:"直线的方程与位置关系",freq:"高频",diff:2,kw:"直线,斜率,点斜式,一般式",tpl:[
+      {id:"s1-2-1",name:"直线的方程与位置关系",freq:"高频",diff:2,kw:"直线,斜率,点斜式,一般式,平行,垂直",tpl:[
         {q:"过点$(2,1)$且与直线$3x-4y+5=0$平行的直线方程为____。",t:"fill",a:"3x-4y-2=0",exp:"平行直线斜率相等，设为$3x-4y+C=0$，代入$(2,1)$得$6-4+C=0\\Rightarrow C=-2$。\n\n**考点定位**：平行直线方程\n**方法总结**：平行直线方程系数成比例"}
+      ]},
+      {id:"s1-2-2",name:"距离公式",freq:"中频",diff:1,kw:"点到直线距离,平行线间距",tpl:[
+        {q:"点$(1,2)$到直线$3x+4y-5=0$的距离为____。",t:"fill",a:"6/5",exp:"$d=\\frac{|3\\times1+4\\times2-5|}{\\sqrt{3^2+4^2}}=\\frac{6}{5}$。\n\n**考点定位**：点到直线的距离公式\n**方法总结**：$d=\\frac{|Ax_0+By_0+C|}{\\sqrt{A^2+B^2}}$"}
+      ]}
+    ]},
+    {name:"圆的方程",points:[
+      {id:"s1-2-3",name:"直线与圆的位置关系",freq:"高频",diff:2,kw:"圆,标准方程,一般方程,直线与圆,弦长",tpl:[
+        {q:"直线$y=x+1$被圆$x^2+y^2=4$截得的弦长为____。",t:"fill",a:"√14",exp:"圆心$(0,0)$到直线$x-y+1=0$的距离$d=\\frac{|1|}{\\sqrt{2}}=\\frac{\\sqrt{2}}{2}$，弦长$=2\\sqrt{r^2-d^2}=2\\sqrt{4-\\frac{1}{2}}=\\sqrt{14}$。\n\n**考点定位**：直线与圆的弦长\n**方法总结**：弦长$=2\\sqrt{r^2-d^2}$"}
       ]}
     ]}
   ]},
   {id:"s1-3",name:"圆锥曲线的方程",units:[
     {name:"椭圆",points:[
-      {id:"s1-3-1",name:"椭圆的定义与标准方程",freq:"高频",diff:2,kw:"椭圆,焦点,离心率,准线",tpl:[
+      {id:"s1-3-1",name:"椭圆的定义与标准方程",freq:"高频",diff:2,kw:"椭圆,焦点,离心率,定义",tpl:[
         {q:"椭圆$\\frac{x^2}{16}+\\frac{y^2}{9}=1$的离心率为____。",t:"fill",a:"√7/4",exp:"$a^2=16\\Rightarrow a=4$，$b^2=9\\Rightarrow b=3$，$c=\\sqrt{a^2-b^2}=\\sqrt{7}$。离心率$e=\\frac{c}{a}=\\frac{\\sqrt{7}}{4}$。\n\n**考点定位**：椭圆离心率的计算\n**方法总结**：$e=\\frac{c}{a}=\\sqrt{1-\\frac{b^2}{a^2}}$"}
+      ]},
+      {id:"s1-3-2",name:"椭圆的几何性质与综合",freq:"高频",diff:3,kw:"椭圆,焦点三角形,离心率范围,最值",tpl:[
+        {q:"已知椭圆$\\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1(a>b>0)$上一点$P$到两焦点距离之和为10，离心率为$\\frac{3}{5}$，则$b=$____。",t:"fill",a:"4",exp:"$2a=10\\Rightarrow a=5$，$e=\\frac{c}{a}=\\frac{3}{5}\\Rightarrow c=3$，$b=\\sqrt{a^2-c^2}=4$。\n\n**考点定位**：椭圆基本量计算\n**方法总结**：$a^2=b^2+c^2$"}
+      ]}
+    ]},
+    {name:"双曲线",points:[
+      {id:"s1-3-3",name:"双曲线的定义与标准方程",freq:"高频",diff:2,kw:"双曲线,焦点,渐近线,离心率",tpl:[
+        {q:"双曲线$\\frac{x^2}{9}-\\frac{y^2}{16}=1$的渐近线方程为____。",t:"fill",a:"y=±4/3x",exp:"$a=3$，$b=4$，渐近线$y=\\pm\\frac{b}{a}x=\\pm\\frac{4}{3}x$。\n\n**考点定位**：双曲线的渐近线\n**方法总结**：将1改为0即得渐近线"}
+      ]},
+      {id:"s1-3-4",name:"双曲线的几何性质",freq:"中频",diff:3,kw:"双曲线,离心率,渐近线,焦半径",tpl:[
+        {q:"双曲线$C$的离心率为$\\sqrt{2}$，则其渐近线互相____。",t:"fill",a:"垂直",exp:"等轴双曲线$e=\\sqrt{2}$，$a=b$，渐近线$y=\\pm x$互相垂直。\n\n**考点定位**：等轴双曲线的性质\n**方法总结**：$a=b$时渐近线$y=\\pm x$垂直"}
+      ]}
+    ]},
+    {name:"抛物线",points:[
+      {id:"s1-3-5",name:"抛物线的定义与标准方程",freq:"高频",diff:2,kw:"抛物线,焦点,准线,定义",tpl:[
+        {q:"抛物线$y^2=8x$的焦点坐标为____。",t:"fill",a:"(2,0)",exp:"$2p=8\\Rightarrow p=4$，焦点$(\\frac{p}{2},0)=(2,0)$。\n\n**考点定位**：抛物线的焦点\n**方法总结**：$y^2=2px$焦点$(\\frac{p}{2},0)$"}
+      ]},
+      {id:"s1-3-6",name:"抛物线的几何性质",freq:"中频",diff:2,kw:"抛物线,焦半径,焦点弦,通径",tpl:[
+        {q:"过抛物线$y^2=4x$焦点的弦长为8，则弦所在直线的斜率为____。",t:"fill",a:"±1",exp:"焦点弦长$=|AB|=x_1+x_2+p$，联立求斜率。\n\n**考点定位**：抛物线的焦点弦\n**方法总结**：焦点弦长$=x_1+x_2+p$"}
+      ]}
+    ]},
+    {name:"圆锥曲线综合",points:[
+      {id:"s1-3-7",name:"直线与圆锥曲线的位置关系",freq:"高频",diff:3,kw:"直线与椭圆,直线与抛物线,弦长,判别式",tpl:[
+        {q:"直线$y=kx+1$与椭圆$\\frac{x^2}{4}+\\frac{y^2}{3}=1$恒有公共点，则$k$的取值范围是____。",t:"fill",a:"R",exp:"直线恒过$(0,1)$，该点在椭圆内部。\n\n**考点定位**：直线与椭圆的位置关系\n**方法总结**：定点在椭圆内部则恒有交点"}
+      ]},
+      {id:"s1-3-8",name:"弦长问题",freq:"高频",diff:3,kw:"弦长,韦达定理,弦长公式",tpl:[
+        {q:"直线$y=x+1$被椭圆$\\frac{x^2}{4}+\\frac{y^2}{2}=1$截得的弦长为____。",t:"fill",a:"4√5/3",exp:"联立得$3x^2+4x-2=0$，弦长$=\\sqrt{1+k^2}\\cdot\\frac{\\sqrt{\\Delta}}{|a|}$。\n\n**考点定位**：椭圆弦长的计算\n**方法总结**：弦长公式$=\\sqrt{1+k^2}|x_1-x_2|$"}
+      ]},
+      {id:"s1-3-9",name:"定点定值问题",freq:"高频",diff:4,kw:"定点,定值,恒过定点,参数无关",tpl:[
+        {q:"已知直线$l$过定点$(1,0)$，$l$与椭圆$\\frac{x^2}{4}+\\frac{y^2}{3}=1$交于$A,B$两点，则弦$AB$中点的轨迹是____。",t:"fill",a:"椭圆",exp:"设中点坐标，利用点差法推导轨迹方程。\n\n**考点定位**：弦中点轨迹\n**方法总结**：点差法+中点坐标公式"}
+      ]},
+      {id:"s1-3-10",name:"最值与范围问题",freq:"高频",diff:4,kw:"最值,范围,面积,长度,参数",tpl:[
+        {q:"已知椭圆$\\frac{x^2}{4}+\\frac{y^2}{3}=1$上一动点$P$，则$|PF_1|\\cdot|PF_2|$的最大值为____。",t:"fill",a:"4",exp:"$|PF_1|+|PF_2|=2a=4$，由基本不等式$|PF_1|\\cdot|PF_2|\\leq(\\frac{|PF_1|+|PF_2|}{2})^2=4$。\n\n**考点定位**：椭圆定义+基本不等式\n**方法总结**：利用定义+均值不等式求最值"}
       ]}
     ]}
   ]}
@@ -450,18 +563,49 @@ const KNOWLEDGE_TREE = [
 {textbook:"选择性必修第二册",grade:2,chapters:[
   {id:"s2-1",name:"数列",units:[
     {name:"等差数列与等比数列",points:[
-      {id:"s2-1-1",name:"等差数列通项与求和",freq:"高频",diff:2,kw:"等差,通项,求和,性质",tpl:[
+      {id:"s2-1-1",name:"等差数列通项与求和",freq:"高频",diff:2,kw:"等差,通项,求和,性质,下标",tpl:[
         {q:"等差数列$\\{a_n\\}$中，$a_1=2$，$a_5=10$，则$S_5=$____。",t:"fill",a:"30",exp:"$a_5=a_1+4d\\Rightarrow 10=2+4d\\Rightarrow d=2$。$S_5=\\frac{5(a_1+a_5)}{2}=\\frac{5\\times12}{2}=30$。\n\n**考点定位**：等差数列求和\n**方法总结**：$S_n=\\frac{n(a_1+a_n)}{2}=na_1+\\frac{n(n-1)}{2}d$"}
       ]},
-      {id:"s2-1-2",name:"等比数列通项与求和",freq:"高频",diff:2,kw:"等比,通项,求和,公比",tpl:[
+      {id:"s2-1-2",name:"等比数列通项与求和",freq:"高频",diff:2,kw:"等比,通项,求和,公比,前n项和",tpl:[
         {q:"等比数列$\\{a_n\\}$中，$a_1=2$，$q=3$，则$a_4=$____。",t:"fill",a:"54",exp:"$a_4=a_1q^3=2\\times 3^3=2\\times 27=54$。\n\n**考点定位**：等比数列通项公式\n**方法总结**：$a_n=a_1q^{n-1}$"}
+      ]}
+    ]},
+    {name:"数列综合",points:[
+      {id:"s2-1-3",name:"数列通项公式的求法",freq:"高频",diff:3,kw:"递推,累加,累乘,构造,特征根",tpl:[
+        {q:"已知数列$\\{a_n\\}$满足$a_1=1$，$a_{n+1}=a_n+2n$，则$a_n=$____。",t:"fill",a:"n²-n+1",exp:"累加法：$a_n=a_1+\\sum_{k=1}^{n-1}2k=1+2\\cdot\\frac{(n-1)n}{2}=n^2-n+1$。\n\n**考点定位**：累加法求通项\n**方法总结**：$a_{n+1}-a_n=f(n)$型用累加法"}
+      ]},
+      {id:"s2-1-4",name:"数列求和",freq:"高频",diff:3,kw:"裂项,错位相减,分组求和,倒序相加",tpl:[
+        {q:"求和：$\\frac{1}{1\\cdot2}+\\frac{1}{2\\cdot3}+\\cdots+\\frac{1}{n(n+1)}=$____。",t:"fill",a:"n/(n+1)",exp:"$\\frac{1}{k(k+1)}=\\frac{1}{k}-\\frac{1}{k+1}$，裂项相消得$1-\\frac{1}{n+1}=\\frac{n}{n+1}$。\n\n**考点定位**：裂项相消法求和\n**方法总结**：$\\frac{1}{n(n+1)}=\\frac{1}{n}-\\frac{1}{n+1}$"}
+      ]},
+      {id:"s2-1-5",name:"数列与不等式综合",freq:"高频",diff:4,kw:"数列不等式,放缩,归纳法,单调性",tpl:[
+        {q:"已知$a_n=\\frac{1}{n^2}$，证明：$S_n<2$。",t:"fill",a:"见解析",exp:"$a_n=\\frac{1}{n^2}<\\frac{1}{n(n-1)}=\\frac{1}{n-1}-\\frac{1}{n}(n\\geq2)$，裂项放缩。\n\n**考点定位**：数列不等式\n**方法总结**：放缩为可裂项形式"}
       ]}
     ]}
   ]},
   {id:"s2-2",name:"一元函数的导数及其应用",units:[
-    {name:"导数概念与运算",points:[
-      {id:"s2-2-1",name:"导数的运算与几何意义",freq:"高频",diff:2,kw:"导数,切线,极值,单调性",tpl:[
+    {name:"导数的概念与运算",points:[
+      {id:"s2-2-1",name:"导数的几何意义（切线方程）",freq:"高频",diff:2,kw:"导数,切线,斜率,切线方程",tpl:[
         {q:"曲线$y=x^3-3x$在点$(1,-2)$处的切线方程为____。",t:"fill",a:"y=-2",exp:"$y'=3x^2-3$，$y'|_{x=1}=0$，切线为$y-(-2)=0\\cdot(x-1)$，即$y=-2$。\n\n**考点定位**：导数与切线方程\n**方法总结**：切线方程$y-y_0=f'(x_0)(x-x_0)$，$f'(x_0)=0$时为水平切线"}
+      ]}
+    ]},
+    {name:"导数的应用",points:[
+      {id:"s2-2-2",name:"利用导数研究函数的单调性",freq:"高频",diff:3,kw:"单调性,导数符号,含参讨论,分类讨论",tpl:[
+        {q:"函数$f(x)=x^3-3x^2+2$的单调递减区间为____。",t:"fill",a:"(0,2)",exp:"$f'(x)=3x^2-6x=3x(x-2)<0\\Rightarrow 0<x<2$。\n\n**考点定位**：利用导数求单调区间\n**方法总结**：$f'(x)<0$的区间为减区间"}
+      ]},
+      {id:"s2-2-3",name:"函数的极值与最值",freq:"高频",diff:3,kw:"极值点,极值,最值,极值点偏移",tpl:[
+        {q:"函数$f(x)=x^3-3x$的极小值为____。",t:"fill",a:"-2",exp:"$f'(x)=3x^2-3=3(x-1)(x+1)$，$x=1$处$f'(x)$由负变正，极小值$f(1)=-2$。\n\n**考点定位**：利用导数求极值\n**方法总结**：$f'(x)$变号处为极值点"}
+      ]},
+      {id:"s2-2-4",name:"恒成立问题（导数）",freq:"高频",diff:4,kw:"恒成立,参数范围,分离参数,最值法",tpl:[
+        {q:"若$e^x\\geq ax+1$对一切$x\\in\\mathbb{R}$恒成立，则$a$的最大值为____。",t:"fill",a:"1",exp:"令$f(x)=e^x-ax-1$，$x=0$时$f(0)=0$。$f'(x)=e^x-a$，分类讨论。\n\n**考点定位**：导数恒成立问题\n**方法总结**：分离参数或构造函数求最值"}
+      ]},
+      {id:"s2-2-5",name:"隐零点问题",freq:"高频",diff:4,kw:"隐零点,设而不求,零点代换,二阶导",tpl:[
+        {q:"已知$f(x)=e^x-\\ln x$，$f'(x_0)=0$，则$x_0$满足的方程是____。",t:"fill",a:"eˣ⁰=1/x₀",exp:"$f'(x)=e^x-\\frac{1}{x}=0\\Rightarrow e^x=\\frac{1}{x}$。隐零点常用于极值点无法解出的情况。\n\n**考点定位**：隐零点概念\n**方法总结**：零点方程代换进行整体化简"}
+      ]},
+      {id:"s2-2-6",name:"构造函数证明不等式",freq:"高频",diff:4,kw:"构造函数,不等式,单调性,最值",tpl:[
+        {q:"证明：当$x>0$时，$\\ln(1+x)>x-\\frac{x^2}{2}$。",t:"fill",a:"见解析",exp:"令$f(x)=\\ln(1+x)-x+\\frac{x^2}{2}$，$f(0)=0$，$f'(x)=\\frac{x^2}{1+x}>0$，故$f(x)>f(0)=0$。\n\n**考点定位**：构造函数证明不等式\n**方法总结**：移项构造函数+利用单调性"}
+      ]},
+      {id:"s2-2-7",name:"导数与三角函数综合",freq:"中频",diff:4,kw:"导数,三角函数,极值,不等式,周期",tpl:[
+        {q:"函数$f(x)=x-\\sin x$在$[0,+\\infty)$上的最小值为____。",t:"fill",a:"0",exp:"$f'(x)=1-\\cos x\\geq0$，$f(x)$单调递增，最小值$f(0)=0$。\n\n**考点定位**：导数与三角函数\n**方法总结**：注意三角函数的周期性"}
       ]}
     ]}
   ]}
@@ -469,21 +613,26 @@ const KNOWLEDGE_TREE = [
 {textbook:"选择性必修第三册",grade:2,chapters:[
   {id:"s3-1",name:"计数原理",units:[
     {name:"排列与组合",points:[
-      {id:"s3-1-1",name:"排列组合基本公式",freq:"中频",diff:2,kw:"排列,组合,计数原理",tpl:[
+      {id:"s3-1-1",name:"排列组合基本公式",freq:"中频",diff:2,kw:"排列,组合,计数原理,阶乘",tpl:[
         {q:"从5名学生中选3人排成一排，共有____种排法。",t:"fill",a:"60",exp:"从5人中选3人排列：$A_5^3=5\\times4\\times3=60$。\n\n**考点定位**：排列数公式\n**方法总结**：排列有序，用$A_n^m$；组合无序，用$C_n^m$"}
+      ]},
+      {id:"s3-1-2",name:"二项式定理",freq:"中频",diff:2,kw:"二项式,通项,系数,展开",tpl:[
+        {q:"$(1+x)^6$的展开式中$x^3$的系数是____。",t:"fill",a:"20",exp:"通项$T_{r+1}=C_6^r x^r$，$r=3$时系数$C_6^3=20$。\n\n**考点定位**：二项式定理\n**方法总结**：通项$T_{r+1}=C_n^r a^{n-r}b^r$"}
       ]}
     ]}
   ]},
   {id:"s3-2",name:"随机变量及其分布",units:[
     {name:"分布列与数字特征",points:[
-      {id:"s3-2-1",name:"离散型随机变量的期望与方差",freq:"高频",diff:2,kw:"期望,方差,分布列",tpl:[
+      {id:"s3-2-1",name:"离散型随机变量的期望与方差",freq:"高频",diff:2,kw:"期望,方差,分布列,标准差",tpl:[
         {q:"掷一枚均匀骰子，点数$X$的期望$E(X)=$____。",t:"fill",a:"3.5",exp:"$E(X)=1\\times\\frac{1}{6}+2\\times\\frac{1}{6}+\\cdots+6\\times\\frac{1}{6}=\\frac{21}{6}=3.5$。\n\n**考点定位**：离散型随机变量的期望\n**方法总结**：$E(X)=\\sum x_i p_i$"}
+      ]},
+      {id:"s3-2-2",name:"二项分布与正态分布",freq:"高频",diff:3,kw:"二项分布,正态分布,3σ原则,独立重复",tpl:[
+        {q:"设$X\\sim B(10,0.3)$，则$E(X)=$____。",t:"fill",a:"3",exp:"二项分布的期望$E(X)=np=10\\times0.3=3$。\n\n**考点定位**：二项分布的期望\n**方法总结**：$X\\sim B(n,p)$时，$E(X)=np$，$D(X)=np(1-p)$"}
       ]}
     ]}
   ]}
 ]}
 ];
-
 // 高考综合专题
 const EXAM_TOPICS = [
 {id:"exam-trig",name:"三角与数列专题",grade:3,desc:"三角函数、解三角形与数列综合"},
@@ -536,6 +685,88 @@ let examTimer=null,examSeconds=0;
 let batchQuestions=[],batchIdx=0,batchSize=1;
 let speedMode=false;
 let tplUsed={}; // 记录每个考点已使用的模板题
+let dedupHistory={}; // {pointId: [{fingerprint, date}]}
+
+function getDedupHistory(){try{return JSON.parse(localStorage.getItem('bjm_dedup')||'{}')}catch(e){return{}}}
+function saveDedupHistory(){localStorage.setItem('bjm_dedup',JSON.stringify(dedupHistory))}
+
+function questionFingerprint(qText){
+  // Generate a simplified fingerprint: keep only LaTeX formulas and key Chinese characters
+  let s=qText||'';
+  // Extract LaTeX formulas as is
+  let latex=s.match(/\$[^\$]+\$/g)||[];
+  // Remove numbers and punctuation, keep Chinese chars and LaTeX
+  let clean=s.replace(/\$[^\$]+\$/g,'').replace(/[\d\s\.\,\;\:\!\?\(\)\-\+\=<>]/g,'');
+  return (latex.join('')+clean.substring(0,60)).replace(/\s/g,'');
+}
+
+function isDuplicate(pointId,qText){
+  if(!pointId||!qText)return false;
+  const h=getDedupHistory();
+  const list=h[pointId]||[];
+  const fp=questionFingerprint(qText);
+  if(!fp)return false;
+  const cutoff=Date.now()-30*24*3600*1000;
+  // Check against recent entries (last 30 days)
+  for(const entry of list){
+    if(entry.date<cutoff)continue;
+    const dist=levenshteinDistance(fp,entry.fingerprint);
+    // If similarity > 85%, treat as duplicate
+    const maxLen=Math.max(fp.length,entry.fingerprint.length);
+    if(maxLen>0&&(1-dist/maxLen)>0.85)return true;
+  }
+  return false;
+}
+
+function addToDedupHistory(pointId,qText){
+  if(!pointId||!qText)return;
+  const h=getDedupHistory();
+  if(!h[pointId])h[pointId]=[];
+  const fp=questionFingerprint(qText);
+  if(!fp)return;
+  h[pointId].push({fingerprint:fp,date:Date.now()});
+  // Keep only last 200 entries per point
+  if(h[pointId].length>200)h[pointId]=h[pointId].slice(-200);
+  // Clean old entries
+  const cutoff=Date.now()-60*24*3600*1000;
+  h[pointId]=h[pointId].filter(e=>e.date>cutoff);
+  dedupHistory=h;
+  saveDedupHistory();
+}
+
+function clearDedupHistory(){
+  if(confirm('确定清空所有去重历史记录？清空后可能再次生成重复题目。')){
+    localStorage.removeItem('bjm_dedup');dedupHistory={};toast('去重历史已清空，可重新生成题目');
+  }
+}
+
+function hasAvailableQuestions(pointId){
+  // Check if there are template questions still unused for this point
+  const pt=findPointById(pointId);
+  if(!pt)return true;
+  if(pt.tpl&&pt.tpl.length){
+    const key=pointId;
+    if(!tplUsed[key])tplUsed[key]=[];
+    if(tplUsed[key].length<pt.tpl.length)return true;
+  }
+  // Check dedup count in last 7 days
+  const h=getDedupHistory();
+  const list=h[pointId]||[];
+  const weekAgo=Date.now()-7*24*3600*1000;
+  const recentCount=list.filter(e=>e.date>weekAgo).length;
+  if(recentCount>=30)return false; // More than 30 unique questions in a week = enough
+  return true;
+}
+
+function levenshteinDistance(a,b){
+  if(!a||!b)return 0;
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));
+  for(let i=0;i<=m;i++)dp[i][0]=i;
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return dp[m][n];
+}
 
 // ==================== 工具函数 ====================
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
@@ -743,10 +974,17 @@ async function generateQuestion(){
   if(isLoading)return;
   batchSize=parseInt($('batchCount')?.value||'1');
   if(batchSize>1){await generateBatch();return}
-  // 尝试模板题
+  // 尝试模板题（含去重检查）
   if(curPoint&&batchSize===1&&speedMode===false){
     const tpl=getTemplateQuestion(curPoint);
-    if(tpl){curQ={question:tpl.q,type:tpl.t,options:tpl.opt||null,answer:tpl.a,explanation:tpl.exp||'',knowledge:[getPointName(curPoint)],_genType:tpl.t,_fromTpl:true};isLoading=false;submitted=false;selectedOpt=null;userFill='';fillIsCorrect=false;batchQuestions=[];renderQuestion();return}
+    if(tpl){
+      if(isDuplicate(curPoint,tpl.q)){
+        const key=curPoint;if(tplUsed[key]){const idx=tplUsed[key].lastIndexOf(tplUsed[key].length-1);if(idx>=0)tplUsed[key].splice(idx,1)}localStorage.setItem('bjm_tpl_used',JSON.stringify(tplUsed));
+      }else{
+        addToDedupHistory(curPoint,tpl.q);
+        curQ={question:tpl.q,type:tpl.t,options:tpl.opt||null,answer:tpl.a,explanation:tpl.exp||'',knowledge:[getPointName(curPoint)],_genType:tpl.t,_fromTpl:true};isLoading=false;submitted=false;selectedOpt=null;userFill='';fillIsCorrect=false;batchQuestions=[];renderQuestion();return
+      }
+    }
   }
   isLoading=true;submitted=false;selectedOpt=null;userFill='';fillIsCorrect=false;batchQuestions=[];
   renderLoadingSingle();
@@ -766,10 +1004,15 @@ async function generateQuestion(){
         respText=await callAPI(sys,usr);
         if(!respText)continue;
         curQ=parseQuestionResponse(respText);curQ._genType=qType;curQ._fromTpl=false;
+        // Dedup check
+        if(curPoint&&isDuplicate(curPoint,curQ.question)){
+          if(retry<2)continue; // Retry for non-duplicate
+        }
         break;
       }catch(e){if(e.message&&e.message.includes('JSON'))continue;throw e}
     }
     if(!curQ)throw new Error('题目生成失败：多次重试后仍无法解析JSON');
+    if(curPoint&&curQ.question)addToDedupHistory(curPoint,curQ.question);
     isLoading=false;renderQuestion();
   }catch(e){isLoading=false;renderError(e.message)}
 }
@@ -789,11 +1032,15 @@ async function generateBatch(){
   const isReal=userGoal==='real';
 
   for(let i=0;i<batchSize;i++){
-    // 先尝试模板题
+    // 先尝试模板题（含去重）
     if(pt&&pt.tpl&&i<pt.tpl.length){
       const tpl=pt.tpl[i];
-      batchQuestions[i]={_idx:i,_status:'ready',_genType:qType,question:tpl.q,type:tpl.t,options:tpl.opt||null,answer:tpl.a,explanation:tpl.exp||'',knowledge:[pn],_fromTpl:true};
-      updateBatchProgress(i+1,batchSize,'done');continue;
+      if(!isDuplicate(curPoint,tpl.q)){
+        addToDedupHistory(curPoint,tpl.q);
+        batchQuestions[i]={_idx:i,_status:'ready',_genType:qType,question:tpl.q,type:tpl.t,options:tpl.opt||null,answer:tpl.a,explanation:tpl.exp||'',knowledge:[pn],_fromTpl:true};
+        updateBatchProgress(i+1,batchSize,'done');continue;
+      }
+      // Skip duplicate, try next template or fall through to AI
     }
     updateBatchProgress(i,batchSize,'generating');
     try{
@@ -808,7 +1055,7 @@ async function generateBatch(){
           parsed=parseQuestionResponse(respText);break;
         }catch(e){if(e.message&&e.message.includes('JSON'))continue;throw e}
       }
-      if(parsed){parsed._idx=i;parsed._genType=qType;parsed._status='ready';batchQuestions[i]=parsed}
+      if(parsed){parsed._idx=i;parsed._genType=qType;parsed._status='ready';batchQuestions[i]=parsed;if(curPoint&&parsed.question)addToDedupHistory(curPoint,parsed.question)}
       else{batchQuestions[i]={_idx:i,_status:'error',_msg:'JSON解析失败',_genType:qType}}
     }catch(e){batchQuestions[i]={_idx:i,_status:'error',_msg:e.message,_genType:qType}}
     updateBatchProgress(i+1,batchSize,'done');
@@ -1005,6 +1252,7 @@ function renderPromptToGenerate(){
   [1,3,5,10].forEach(n=>h+=`<option value="${n}">×${n}</option>`);
   h+=`</select></div>`;
   if(pt&&pt.tpl&&pt.tpl.length>0)h+=`<p style="font-size:11px;color:var(--pri);margin-top:10px">📌 本考点已内置${pt.tpl.length}道典型母题，优先推送</p>`;
+  if(curPoint&&!hasAvailableQuestions(curPoint))h+=`<p style="font-size:11px;color:var(--warn);margin-top:4px">⚠️ 当前考点新题生成较多，可切换其他考点或清空去重历史</p>`;
   if(GEOMETRY_IDS.includes(curChapter))h+=`<p style="font-size:11px;color:var(--pri);margin-top:4px">📐 自动生成几何图形</p>`;
   h+=`</div>`;
   $('mainContent').innerHTML=h;
@@ -1346,7 +1594,13 @@ function refreshMathJax(){setTimeout(()=>{if(window.MathJax&&MathJax.typesetProm
 
 // ==================== 夜间模式 ====================
 function toggleDark(){document.body.classList.toggle('dark');const d=document.body.classList.contains('dark');const t=d?'☀️ 日间模式':'🌙 夜间模式';$('btnDark').textContent=t;$('btnDark2').textContent=d?'☀️':'🌙';localStorage.setItem('bjm_dark',d?'1':'0')}
-function toggleSidebar(){$('sidebar').classList.toggle('open')}
+function toggleSidebar(){
+  const sb=$('sidebar');const bd=$('sidebarBackdrop');
+  sb.classList.toggle('open');
+  if(bd)bd.classList.toggle('show',sb.classList.contains('open'));
+  if(sb.classList.contains('open')){document.body.style.overflow='hidden'}
+  else{document.body.style.overflow=''}
+}
 
 // ==================== 键盘快捷键 ====================
 document.addEventListener('keydown',e=>{
@@ -1439,6 +1693,8 @@ function renderMobileSettings(){
   h+=`<div class="card" style="margin-bottom:12px"><h3 style="font-size:14px;margin-bottom:10px">💾 数据</h3>`;
   h+=`<button class="btn btn-out btn-sm" style="margin-right:8px" onclick="exportAllData()">📤 导出全部数据</button>`;
   h+=`<button class="btn btn-out btn-sm" onclick="importAllData()">📥 导入数据</button></div>`;
+  // 去重历史
+  h+=`<div class="card" style="margin-bottom:12px"><h3 style="font-size:14px;margin-bottom:10px">🔄 去重管理</h3><p style="font-size:12px;color:var(--txt2);margin-bottom:8px">当前记录了${(getDedupHistory()[curPoint]||[]).length}条去重指纹</p><button class="btn btn-err btn-sm" onclick="clearDedupHistory()">清空去重历史</button></div>`;
   // 添加到桌面
   h+=`<div class="card"><h3 style="font-size:14px;margin-bottom:10px">📱 添加到桌面</h3><p style="font-size:12px;color:var(--txt2);margin-bottom:8px">在浏览器菜单中选择\"添加到主屏幕\"，即可像App一样使用</p></div>`;
   $('mainContent').innerHTML=h;
@@ -1514,10 +1770,9 @@ document.addEventListener('touchend',e=>{
   const dx=e.changedTouches[0].clientX-touchStartX;
   const dy=e.changedTouches[0].clientY-touchStartY;
   if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy))return;
+  // Only swipe for batch questions, never open sidebar
   if(dx<0&&batchQuestions.length>1&&batchIdx<batchQuestions.length-1){switchBatchTab(batchIdx+1)}
   else if(dx>0&&batchQuestions.length>1&&batchIdx>0){switchBatchTab(batchIdx-1)}
-  else if(dx<0&&!batchQuestions.length&&curQ&&!submitted){/* next question hint */}
-  else if(dx>0&&batchQuestions.length>0){/* prev */}
 });
 
 // 数据导入导出
@@ -1717,6 +1972,7 @@ window.addEventListener('offline',()=>toast('📡 已离线，缓存内容仍可
 function init(){
   initPWA();
   try{tplUsed=JSON.parse(localStorage.getItem('bjm_tpl_used')||'{}')}catch(e){tplUsed={}}
+  try{dedupHistory=JSON.parse(localStorage.getItem('bjm_dedup')||'{}')}catch(e){dedupHistory={}}
   if(localStorage.getItem('bjm_dark')==='1'){
     document.body.classList.add('dark');$('btnDark').textContent='☀️ 日间模式';$('btnDark2').textContent='☀️';
   }
