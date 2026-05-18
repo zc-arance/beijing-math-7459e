@@ -17,6 +17,7 @@ tailwind.config = {
   }
 }
 </script>
+<!-- MathJax 3: clean config, no packages override — tex-mml-chtml defaults include ams/amscd/cancel/color/enclose/newcommand/unicode/verb etc. -->
 <script>
 MathJax = {
   tex: {
@@ -24,27 +25,23 @@ MathJax = {
     displayMath: [['$$', '$$'], ['\\[', '\\]']],
     processEscapes: true,
     processEnvironments: true,
-    tags: 'ams',
-    packages: {'[+]': ['base', 'ams', 'newcommand', 'noerrors', 'noundefined', 'color', 'cancel']}
+    tags: 'ams'
   },
-  loader: {load: ['[tex]/noerrors', '[tex]/noundefined', '[tex]/cancel', '[tex]/color']},
   options: {
-    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-    ignoreHtmlClass: 'no-mathjax',
-    enableMenu: false
+    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
   },
-  chtml: {matchFontHeight: true, scale: 1, minScale: 0.8}
+  chtml: {matchFontHeight: true, scale: 1}
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-  :root{--bg:#f6f7fb;--card-bg:#fff;--card-bd:#eef0f5;--text:#1a1a2e;--sub:#888;--hd-bg:rgba(255,255,255,0.9)}
-  body.dark{--bg:#141824;--card-bg:#1e2235;--card-bd:#2a2f45;--text:#d8dae6;--sub:#8a8ea0;--hd-bg:rgba(20,24,36,0.92)}
+  :root{--bg:#f5f6fa;--card-bg:#fff;--card-bd:#e8ebf2;--text:#1a1a2e;--sub:#8a8ea0;--hd-bg:rgba(255,255,255,0.92)}
+  body.dark{--bg:#111620;--card-bg:#1a1f2e;--card-bd:#2a3040;--text:#d0d4e0;--sub:#7a7e90;--hd-bg:rgba(17,22,32,0.94)}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;min-height:100vh;margin:0;transition:background 0.3s,color 0.3s}
   .card{background:var(--card-bg);border-radius:14px;border:1px solid var(--card-bd);padding:18px;transition:all 0.2s}
-  .card:hover{box-shadow:0 2px 16px rgba(0,0,0,0.05)}
+  .card:hover{box-shadow:0 2px 16px rgba(0,0,0,0.04)}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;user-select:none;white-space:nowrap}
   .btn:active{transform:scale(0.96)}
   .btn-pri{background:#165DFF;color:#fff}.btn-pri:hover{background:#0E42D6}
@@ -52,77 +49,73 @@ MathJax = {
   .btn-ghost{background:transparent;color:var(--sub)}.btn-ghost:hover{background:rgba(0,0,0,0.04)}
   body.dark .btn-out:hover{background:rgba(22,93,255,0.12)}
   body.dark .btn-ghost:hover{background:rgba(255,255,255,0.05)}
-  .btn-ok{background:#36D399;color:#fff}.btn-warn{background:#F97316;color:#fff}.btn-err{background:#F43F5E;color:#fff}
-  .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+  .btn-sm{padding:5px 12px;font-size:12px;border-radius:8px}
   .btn-lg{padding:13px 28px;font-size:16px;border-radius:12px}
-  .input{width:100%;padding:12px 16px;border-radius:10px;border:1px solid #e0e3ea;background:#fafbfc;font-size:15px;outline:none;transition:border-color 0.2s;box-sizing:border-box;color:var(--text)}
-  body.dark .input{background:#252a3a;border-color:#3a3f55;color:#d8dae6}
-  .input:focus{border-color:#165DFF;box-shadow:0 0 0 3px rgba(22,93,255,0.1)}
+  .input{width:100%;padding:11px 15px;border-radius:10px;border:1px solid #dde0e8;background:#f9fafc;font-size:15px;outline:none;transition:border-color 0.2s;box-sizing:border-box;color:var(--text)}
+  body.dark .input{background:#22283a;border-color:#383e55;color:#d0d4e0}
+  .input:focus{border-color:#165DFF;box-shadow:0 0 0 3px rgba(22,93,255,0.08)}
   select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
-  .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font-size:11px;font-weight:600;letter-spacing:0.02em}
+  .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font-size:11px;font-weight:600}
   .tag-pri{background:#E8F0FF;color:#165DFF}.tag-ok{background:#e6f9f1;color:#1d9a5e}.tag-warn{background:#fff4ed;color:#d4691a}
   .tag-easy{background:#e6f9f1;color:#1d9a5e}.tag-mid{background:#fff8e6;color:#b8780a}.tag-hard{background:#fef0f0;color:#d43030}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);z-index:9999;background:#1a1a1a;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,0.25);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);max-width:90vw;text-align:center}
   .toast.show{transform:translateX(-50%) translateY(0)}
   .fade-in{animation:fadeIn 0.3s ease-out}@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
   .slide-up{animation:slideUp 0.3s ease-out}@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-  body{background:var(--bg)}
 
-  /* ---- Two-column layout ---- */
+  /* Two-column layout */
   .main-grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
   @media(max-width:860px){.main-grid{grid-template-columns:1fr}}
   @media(max-width:640px){.btn{padding:8px 14px;font-size:13px}.card{padding:14px}.main-grid{gap:12px}}
 
-  /* ---- Sidebar ---- */
-  .sidebar-stats{display:flex;flex-direction:column;gap:8px}
-  .stat-mini{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--card-bd)}
+  /* Sidebar stat rows */
+  .stat-mini{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid var(--card-bd)}
   .stat-mini:last-child{border-bottom:none}
   .stat-val{font-weight:700;font-size:14px}
 
-  /* ---- Question area ---- */
-  .q-stem{font-size:16px;line-height:2.0;padding:4px 0;word-break:break-word}
-  @media(max-width:640px){.q-stem{font-size:15px;line-height:1.85}}
-  .option-card{cursor:pointer;border:2px solid #e0e3ea;border-radius:12px;padding:13px 16px;transition:all 0.2s;display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
-  body.dark .option-card{border-color:#3a3f55}
+  /* Question stem */
+  .q-stem{font-size:17px;line-height:2.1;padding:6px 0;word-break:break-word}
+  @media(max-width:640px){.q-stem{font-size:15px;line-height:1.9}}
+
+  /* Options */
+  .option-card{cursor:pointer;border:2px solid #dde0e8;border-radius:12px;padding:13px 15px;transition:all 0.2s;display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+  body.dark .option-card{border-color:#383e55}
   .option-card:hover{border-color:#165DFF;background:rgba(22,93,255,0.03)}
   .option-card.selected{border-color:#165DFF;background:rgba(22,93,255,0.06);box-shadow:0 0 0 1px rgba(22,93,255,0.2)}
-  .opt-circle{width:32px;height:32px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#666;flex-shrink:0;transition:all 0.2s}
-  body.dark .opt-circle{background:#2a2f45;color:#aaa}
+  .opt-circle{width:32px;height:32px;border-radius:50%;background:#eef0f5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#666;flex-shrink:0;transition:all 0.2s}
+  body.dark .opt-circle{background:#2a3040;color:#aaa}
   .option-card.selected .opt-circle{background:#165DFF;color:#fff}
 
-  /* ---- Knowledge tree ---- */
+  /* Knowledge tree */
   .kp-item{cursor:pointer;border-radius:8px;padding:7px 10px;transition:all 0.15s;display:flex;align-items:center;gap:7px;font-size:13px}
   .kp-item:hover{background:rgba(22,93,255,0.04)}
   .kp-item.active{background:#E8F0FF;color:#165DFF;font-weight:600}
   body.dark .kp-item.active{background:#1a2a4a;color:#5b8dff}
-  .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}.dot-on{background:#165DFF}.dot-off{background:#ccd0d8}
+  .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}.dot-on{background:#165DFF}.dot-off{background:#c0c4d0}
 
-  /* ---- Result boxes ---- */
+  /* Result */
   .result-box{border-radius:12px;padding:16px;margin-top:12px}
   .result-ok{background:#f0fdf6;border:1px solid #bbf7d0}
   body.dark .result-ok{background:#0a2a1a;border-color:#1a5a3a}
   .result-err{background:#fef2f2;border:1px solid #fecaca}
   body.dark .result-err{background:#2a0a0a;border-color:#5a1a1a}
 
-  /* ---- Grade switch pills ---- */
-  .grade-pill{border:1.5px solid #e0e3ea;background:transparent;color:var(--text);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+  /* Grade pills */
+  .grade-pill{border:1.5px solid #d0d4de;background:transparent;color:var(--text);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;white-space:nowrap}
   .grade-pill:hover{border-color:#165DFF;color:#165DFF}
   .grade-pill.active{background:#165DFF;border-color:#165DFF;color:#fff}
-  body.dark .grade-pill{border-color:#3a3f55}
+  body.dark .grade-pill{border-color:#3a4055}
   body.dark .grade-pill.active{background:#165DFF;border-color:#165DFF}
 
-  /* ---- PDF overlay ---- */
+  /* PDF overlay */
   .pdf-loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
   .pdf-loading-overlay .spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite}
   .pdf-loading-overlay .text{color:#fff;font-size:15px;font-weight:500}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  /* ---- MathJax overflow for WeChat ---- */
+  /* MathJax overflow (WeChat safe) */
   mjx-container{overflow-x:auto;overflow-y:hidden;max-width:100%}
   mjx-container[jax="CHTML"][display="true"]{overflow-x:auto}
-
-  /* ---- Onboarding overlay ---- */
-  .onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:45;display:flex;align-items:center;justify-content:center;padding:16px}
 </style>
 </head>
 <body>
@@ -137,11 +130,10 @@ MathJax = {
       <div style="width:36px;height:36px;background:#165DFF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0">B</div>
       <div>
         <div style="font-weight:700;font-size:15px;line-height:1.2">北京高中数学刷题</div>
-        <div style="font-size:10px;color:var(--sub);line-height:1.2" id="headerSub">2026 北京卷</div>
+        <div style="font-size:10px;color:var(--sub);line-height:1.2" id="headerSub">2026 北京卷 · 人教B版</div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <!-- Compact stats in header -->
+    <div style="display:flex;align-items:center;gap:6px">
       <span style="font-size:11px;color:var(--sub)" id="hdrTotal">0题</span>
       <span style="font-size:11px;color:#36D399;font-weight:600" id="hdrRate">--</span>
       <span style="font-size:11px;background:#E8F0FF;color:#165DFF;padding:3px 10px;border-radius:20px;font-weight:500;cursor:pointer" onclick="showGradeSwitch()" id="hdrGrade">选择年级</span>
@@ -154,47 +146,48 @@ MathJax = {
 <!-- Main -->
 <main style="max-width:1100px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px">
 
-  <!-- Quick Grade Switch (hidden by default, shown after practice starts) -->
-  <div id="gradeQuickSwitch" style="display:none" class="card">
+  <!-- Quick Grade Switch (shows after practice starts) -->
+  <div id="gradeQuickSwitch" style="display:none" class="card" onclick="if(event.target===this)showGradeSwitch()">
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-size:12px;color:var(--sub);flex-shrink:0">年级：</span>
-      <button class="grade-pill active" id="gp_高一" onclick="quickSwitchGrade('高一')">📗 高一</button>
-      <button class="grade-pill" id="gp_高二" onclick="quickSwitchGrade('高二')">📘 高二</button>
-      <button class="grade-pill" id="gp_高三" onclick="quickSwitchGrade('高三')">📙 高三</button>
-      <span style="font-size:11px;color:var(--sub);margin-left:8px">目标：</span>
-      <select id="quickGoalSelect" class="input" style="width:auto;padding:6px 12px;font-size:12px;border-radius:8px" onchange="quickSwitchGoal(this.value)"></select>
+      <span style="font-size:12px;color:var(--sub)">年级：</span>
+      <button class="grade-pill active" id="gp_高一" onclick="event.stopPropagation();quickSwitchGrade('高一')">📗 高一</button>
+      <button class="grade-pill" id="gp_高二" onclick="event.stopPropagation();quickSwitchGrade('高二')">📘 高二</button>
+      <button class="grade-pill" id="gp_高三" onclick="event.stopPropagation();quickSwitchGrade('高三')">📙 高三</button>
+      <span style="font-size:11px;color:var(--sub);margin-left:6px">目标：</span>
+      <select id="quickGoalSelect" class="input" style="width:auto;padding:5px 10px;font-size:11px;border-radius:8px" onchange="quickSwitchGoal(this.value)"></select>
       <span style="font-size:11px;color:var(--sub);margin-left:auto" id="quickDedupCount">去重: 0条</span>
     </div>
   </div>
 
-  <!-- Two-column grid: main content + sidebar -->
+  <!-- Two-column grid -->
   <div class="main-grid" id="mainGrid" style="display:none">
     <!-- LEFT: Main content -->
     <div style="display:flex;flex-direction:column;gap:16px">
 
-      <!-- Knowledge Panel (compact) -->
+      <!-- Knowledge Panel -->
       <section id="knowledgePanel" class="card" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <h3 style="font-size:15px;font-weight:700;margin:0">📚 知识点</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <h3 style="font-size:15px;font-weight:700;margin:0">📚 知识点 <span style="font-size:11px;color:var(--sub);font-weight:400" id="kpGradeHint"></span></h3>
           <div style="display:flex;gap:6px">
-            <select id="chapterFilter" onchange="renderTree()" style="font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid #e0e3ea;background:var(--card-bg);color:var(--text);outline:none"></select>
+            <select id="chapterFilter" onchange="renderTree()" style="font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid #dde0e8;background:var(--card-bg);color:var(--text);outline:none"></select>
             <button class="btn btn-ghost btn-sm" onclick="switchMode()" id="btnMode">⚡ 刷题</button>
           </div>
         </div>
-        <div id="knowledgeTree" style="max-height:220px;overflow-y:auto"></div>
+        <div id="knowledgeTree" style="max-height:200px;overflow-y:auto"></div>
         <div id="pointStats" style="font-size:11px;color:var(--sub);margin-top:8px;padding-top:8px;border-top:1px solid var(--card-bd)"></div>
       </section>
 
       <!-- Question Area -->
       <section id="questionArea" style="display:none">
+        <!-- Loading -->
         <div id="loadingCard" class="card" style="display:none;text-align:center;padding:36px 20px">
           <div style="width:36px;height:36px;border:3px solid #E8F0FF;border-top-color:#165DFF;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px"></div>
           <p style="color:var(--sub);font-size:14px;margin:0" id="loadingMsg">正在生成高质量题目，请稍候...</p>
           <p style="color:#bbb;font-size:11px;margin:4px 0 0" id="loadingSub">检索参考题 · 去重比对 · 原创验证</p>
         </div>
 
-        <!-- Batch progress (moved above question card) -->
-        <div id="batchProgress" class="card" style="display:none;padding:12px 16px;margin-bottom:8px">
+        <!-- Batch progress -->
+        <div id="batchProgress" class="card" style="display:none;padding:10px 16px;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:12px">
             <span style="font-size:12px;font-weight:600;white-space:nowrap">📋 批次</span>
             <div style="flex:1;height:5px;background:#eef0f5;border-radius:3px;overflow:hidden">
@@ -209,7 +202,7 @@ MathJax = {
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
             <span class="tag tag-pri" id="qGrade"></span>
             <span class="tag tag-ok" id="qPoint"></span>
-            <span class="tag" id="qDiffTag"></span>
+            <span class="tag" id="qDiffTag">中</span>
             <span style="font-size:11px;color:var(--sub);margin-left:auto" id="qType"></span>
           </div>
           <div class="q-stem" id="qStem"></div>
@@ -217,8 +210,8 @@ MathJax = {
           <div id="qFill" style="display:none;margin:14px 0">
             <input type="text" id="fillInput" class="input" placeholder="输入你的答案，按 Enter 提交..." onkeydown="if(event.key==='Enter')submitAnswer()">
           </div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px">
-            <button id="btnSubmit" class="btn btn-pri btn-lg" onclick="submitAnswer()" style="flex-shrink:0">✓ 提交答案</button>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px">
+            <button id="btnSubmit" class="btn btn-pri btn-lg" onclick="submitAnswer()">✓ 提交答案</button>
             <button class="btn btn-out" onclick="skipQuestion()">↪ 换一题</button>
             <button class="btn btn-ghost btn-sm" onclick="showHint()">💡 提示</button>
           </div>
@@ -228,9 +221,9 @@ MathJax = {
 
       <!-- Error Notebook -->
       <section id="errorArea" class="card" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <h3 style="font-size:15px;font-weight:700;margin:0">📝 错题本 <span style="font-size:11px;color:var(--sub);font-weight:400" id="errCount"></span></h3>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:5px">
             <button class="btn btn-warn btn-sm" onclick="exportPDF()">📄 PDF</button>
             <button class="btn btn-out btn-sm" onclick="exportErrors()">TXT</button>
             <button class="btn btn-err btn-sm" onclick="clearErrors()">清空</button>
@@ -242,9 +235,9 @@ MathJax = {
 
     <!-- RIGHT: Sidebar -->
     <aside id="sidebar" style="display:flex;flex-direction:column;gap:14px">
-      <!-- Stats card -->
+      <!-- Stats Card -->
       <div class="card" style="padding:14px 16px">
-        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.05em">📊 学习统计</h4>
+        <h4 style="font-size:12px;font-weight:700;margin:0 0 10px;color:var(--sub);letter-spacing:0.05em">📊 学习统计</h4>
         <div class="stat-mini"><span>总题数</span><span class="stat-val" style="color:#165DFF" id="sTotal">0</span></div>
         <div class="stat-mini"><span>✅ 正确</span><span class="stat-val" style="color:#36D399" id="sCorrect">0</span></div>
         <div class="stat-mini"><span>❌ 错误</span><span class="stat-val" style="color:#F43F5E" id="sWrong">0</span></div>
@@ -253,30 +246,30 @@ MathJax = {
         <div class="stat-mini"><span>去重库</span><span class="stat-val" style="color:var(--sub);font-size:12px" id="sDedup">0条</span></div>
       </div>
 
-      <!-- Current knowledge point detail -->
+      <!-- Current KP -->
       <div class="card" style="padding:14px 16px" id="sidebarKpCard">
-        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.05em">🎯 当前考点</h4>
-        <div id="sidebarKpDetail" style="font-size:12px;color:var(--sub)">请选择知识点</div>
+        <h4 style="font-size:12px;font-weight:700;margin:0 0 8px;color:var(--sub)">🎯 当前考点</h4>
+        <div id="sidebarKpDetail" style="font-size:12px;color:var(--sub);line-height:1.7">请选择知识点</div>
       </div>
 
-      <!-- Batch info (compact) -->
-      <div class="card" style="padding:14px 16px" id="sidebarBatch" style="display:none">
-        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;color:var(--sub)">⚙️ 生成设置</h4>
-        <div style="font-size:12px;color:var(--sub)">
-          <div style="display:flex;justify-content:space-between;padding:2px 0"><span>AI模型</span><span id="sModel">-</span></div>
-          <div style="display:flex;justify-content:space-between;padding:2px 0"><span>批次大小</span><span id="sBatch">-</span></div>
-          <div style="display:flex;justify-content:space-between;padding:2px 0"><span>刷题模式</span><span id="sMode">-</span></div>
+      <!-- Settings info -->
+      <div class="card" style="padding:14px 16px">
+        <h4 style="font-size:12px;font-weight:700;margin:0 0 8px;color:var(--sub)">⚙️ 生成设置</h4>
+        <div style="font-size:12px;color:var(--sub);line-height:1.8">
+          <div style="display:flex;justify-content:space-between"><span>AI模型</span><span id="sModel">-</span></div>
+          <div style="display:flex;justify-content:space-between"><span>批次大小</span><span id="sBatch">-</span></div>
+          <div style="display:flex;justify-content:space-between"><span>模式</span><span id="sMode">-</span></div>
         </div>
       </div>
     </aside>
   </div>
 
-  <!-- Onboarding (shown as overlay when no grade/goal selected) -->
-  <section id="onboarding" class="card fade-in" style="max-width:500px;margin:40px auto;text-align:center">
+  <!-- Onboarding (shown when no grade/goal selected) -->
+  <section id="onboarding" class="card fade-in" style="max-width:480px;margin:40px auto;text-align:center">
     <div style="margin-bottom:16px">
       <div style="width:56px;height:56px;background:#E8F0FF;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:24px">🎯</div>
       <h2 style="font-size:18px;font-weight:700;margin:0 0 2px">开始刷题</h2>
-      <p style="font-size:12px;color:var(--sub);margin:0">选择年级和目标，智能出题</p>
+      <p style="font-size:12px;color:var(--sub);margin:0">选择年级和目标，智能出题 — 北京人教B版</p>
     </div>
     <div id="gradeSelGroup" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px"></div>
     <div id="goalSelGroup" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px"></div>
@@ -293,8 +286,7 @@ MathJax = {
       <button onclick="closeSettings()" class="btn btn-ghost" style="font-size:16px;padding:4px 8px">✕</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div>
-        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">AI 提供商</label>
+      <div><label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">AI 提供商</label>
         <select id="setProvider" class="input" onchange="onProviderChange()">
           <option value="deepseek">🔵 DeepSeek（默认）</option>
           <option value="openai">🟢 OpenAI</option>
@@ -302,29 +294,18 @@ MathJax = {
           <option value="qwen">🟠 通义千问（阿里）</option>
           <option value="ernie">🔴 文心一言（百度）</option>
           <option value="doubao">🟡 豆包（字节）</option>
-        </select>
-      </div>
-      <div>
-        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">模型</label>
-        <select id="setModel" class="input"></select>
-      </div>
-      <div>
-        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">API Key</label>
+        </select></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">模型</label>
+        <select id="setModel" class="input"></select></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">API Key</label>
         <input type="password" id="setApiKey" class="input" placeholder="输入对应厂商的 API Key...">
-        <div style="font-size:10px;color:#999;margin-top:3px" id="apiKeyHint"></div>
-      </div>
-      <div id="setBaseUrlGroup">
-        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">API Base URL</label>
-        <input type="text" id="setBaseUrl" class="input" placeholder="自动填充默认地址">
-      </div>
-      <div>
-        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">Supabase 表名</label>
-        <input type="text" id="setTable" class="input" value="questions">
-      </div>
-      <div>
-        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">单次生成题数（1-10）</label>
-        <input type="number" id="setBatch" class="input" min="1" max="10" value="3">
-      </div>
+        <div style="font-size:10px;color:#999;margin-top:3px" id="apiKeyHint"></div></div>
+      <div id="setBaseUrlGroup"><label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">API Base URL</label>
+        <input type="text" id="setBaseUrl" class="input" placeholder="自动填充默认地址"></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">Supabase 表名</label>
+        <input type="text" id="setTable" class="input" value="questions"></div>
+      <div><label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">单次生成题数（1-10）</label>
+        <input type="number" id="setBatch" class="input" min="1" max="10" value="3"></div>
       <div style="display:flex;gap:8px;padding-top:6px">
         <button class="btn btn-pri" style="flex:1;justify-content:center" onclick="saveSettings()">保存设置</button>
         <button class="btn btn-ghost btn-sm" onclick="clearDedup()">清空去重</button>
@@ -360,46 +341,65 @@ let darkMode=false,totalDedupCount=0;
 
 // ==================== GRADE CONFIG ====================
 const GRADES={
-  '高一':{icon:'📗',desc:'基础巩固·同步提升',goals:[
+  '高一':{icon:'📗',desc:'人教B版必修',goals:[
     {id:'g1_pass',label:'合格考通过',desc:'夯实基础',diff:'easy'},
     {id:'g1_excel',label:'冲刺优秀',desc:'建立优势',diff:'medium'}]},
-  '高二':{icon:'📘',desc:'能力突破·专项强化',goals:[
+  '高二':{icon:'📘',desc:'人教B版选择性必修',goals:[
     {id:'g2_found',label:'夯实基础',desc:'补弱固强',diff:'medium'},
     {id:'g2_adv',label:'冲刺140+',desc:'深度训练',diff:'hard'}]},
-  '高三':{icon:'📙',desc:'高考冲刺·全真模拟',goals:[
+  '高三':{icon:'📙',desc:'高考综合冲刺',goals:[
     {id:'g3_100',label:'目标120分',desc:'基础+中档',diff:'medium'},
     {id:'g3_130',label:'目标135+',desc:'中档+压轴',diff:'hard'},
     {id:'g3_145',label:'目标145+',desc:'全题型突破',diff:'hard'}]}
 };
 
-// ==================== KNOWLEDGE TREE ====================
+// ==================== KNOWLEDGE TREE (Beijing PEP B edition, grade-linked) ====================
+// grades: '高一'=必修, '高二'=选择性必修, '高三'=综合(全显示)
+// Points within a chapter can override the chapter's grades
 const TREE=[
-  {id:'ch1',name:'集合与逻辑',pts:[
-    {id:'p1_1',name:'集合-集合运算',diff:'easy'},{id:'p1_2',name:'常用逻辑用语-充要条件',diff:'easy'},{id:'p1_3',name:'常用逻辑用语-全称与存在量词',diff:'easy'}]},
-  {id:'ch2',name:'不等式',pts:[
-    {id:'p2_1',name:'不等式-基本不等式',diff:'easy'},{id:'p2_2',name:'不等式-一元二次不等式',diff:'easy'},{id:'p2_3',name:'不等式-绝对值不等式',diff:'medium'}]},
-  {id:'ch3',name:'函数',pts:[
-    {id:'p3_1',name:'函数-定义域与值域',diff:'easy'},{id:'p3_2',name:'函数-单调性',diff:'easy'},{id:'p3_3',name:'函数-奇偶性',diff:'easy'},
-    {id:'p3_4',name:'函数-周期性',diff:'medium'},{id:'p3_5',name:'函数-指数与对数',diff:'medium'},{id:'p3_6',name:'函数-二次函数',diff:'easy'},
-    {id:'p3_7',name:'函数-幂函数',diff:'easy'},{id:'p3_8',name:'函数-分段函数',diff:'medium'},{id:'p3_9',name:'函数-图像与零点',diff:'medium'}]},
-  {id:'ch4',name:'三角函数',pts:[
-    {id:'p4_1',name:'三角函数-图像与性质',diff:'medium'},{id:'p4_2',name:'三角函数-恒等变换',diff:'medium'},{id:'p4_3',name:'三角函数-解三角形',diff:'medium'}]},
-  {id:'ch5',name:'平面向量',pts:[
-    {id:'p5_1',name:'平面向量-数量积',diff:'medium'},{id:'p5_2',name:'平面向量-坐标运算',diff:'easy'},{id:'p5_3',name:'平面向量-共线与共面',diff:'easy'}]},
-  {id:'ch6',name:'数列',pts:[
-    {id:'p6_1',name:'数列-等差数列',diff:'medium'},{id:'p6_2',name:'数列-等比数列',diff:'medium'},{id:'p6_3',name:'数列-数列求和',diff:'medium'},{id:'p6_4',name:'数列-递推数列',diff:'hard'}]},
-  {id:'ch7',name:'立体几何',pts:[
-    {id:'p7_1',name:'立体几何-空间向量',diff:'medium'},{id:'p7_2',name:'立体几何-平行与垂直',diff:'medium'},{id:'p7_3',name:'立体几何-体积与表面积',diff:'medium'},{id:'p7_4',name:'立体几何-空间角计算',diff:'hard'}]},
-  {id:'ch8',name:'解析几何',pts:[
-    {id:'p8_1',name:'解析几何-直线方程',diff:'easy'},{id:'p8_2',name:'解析几何-圆的方程',diff:'medium'},{id:'p8_3',name:'解析几何-椭圆',diff:'medium'},
-    {id:'p8_4',name:'解析几何-双曲线',diff:'medium'},{id:'p8_5',name:'解析几何-抛物线',diff:'medium'},{id:'p8_6',name:'解析几何-直线与圆锥曲线',diff:'hard'},{id:'p8_7',name:'解析几何-轨迹方程',diff:'hard'}]},
-  {id:'ch9',name:'概率与统计',pts:[
-    {id:'p9_1',name:'概率与统计-古典概型',diff:'easy'},{id:'p9_2',name:'概率与统计-分布与期望',diff:'medium'},{id:'p9_3',name:'概率与统计-正态分布',diff:'medium'},
-    {id:'p9_4',name:'概率与统计-统计图表',diff:'easy'},{id:'p9_5',name:'概率与统计-排列组合',diff:'medium'},{id:'p9_6',name:'概率与统计-二项式定理',diff:'medium'},{id:'p9_7',name:'概率与统计-随机变量',diff:'medium'}]},
-  {id:'ch10',name:'导数',pts:[
-    {id:'p10_1',name:'导数-切线方程',diff:'medium'},{id:'p10_2',name:'导数-单调性与极值',diff:'medium'},{id:'p10_3',name:'导数-恒成立问题',diff:'hard'},{id:'p10_4',name:'导数-零点问题',diff:'hard'}]},
-  {id:'ch11',name:'复数',pts:[{id:'p11_1',name:'复数',diff:'easy'}]}
+  // ===== 高一：必修 =====
+  {id:'ch1',name:'集合与常用逻辑用语',grades:['高一','高三'],pts:[
+    {id:'p1_1',name:'集合的运算',diff:'easy'},{id:'p1_2',name:'充要条件',diff:'easy'},{id:'p1_3',name:'全称量词与存在量词',diff:'easy'}]},
+  {id:'ch2',name:'一元二次函数与不等式',grades:['高一','高三'],pts:[
+    {id:'p2_1',name:'基本不等式',diff:'easy'},{id:'p2_2',name:'一元二次不等式',diff:'easy'},{id:'p2_3',name:'绝对值不等式',diff:'medium'}]},
+  {id:'ch3',name:'函数的概念与性质',grades:['高一','高三'],pts:[
+    {id:'p3_1',name:'定义域与值域',diff:'easy'},{id:'p3_2',name:'单调性',diff:'easy'},{id:'p3_3',name:'奇偶性',diff:'easy'},
+    {id:'p3_4',name:'周期性',diff:'medium'},{id:'p3_5',name:'指数与对数函数',diff:'medium'},{id:'p3_6',name:'二次函数',diff:'easy'},
+    {id:'p3_7',name:'幂函数',diff:'easy'},{id:'p3_8',name:'分段函数',diff:'medium'},{id:'p3_9',name:'函数图像与零点',diff:'medium'}]},
+  {id:'ch4',name:'三角函数',grades:['高一','高三'],pts:[
+    {id:'p4_1',name:'三角函数的图像与性质',diff:'medium'},{id:'p4_2',name:'三角恒等变换',diff:'medium'},{id:'p4_3',name:'解三角形',diff:'medium'}]},
+  {id:'ch5',name:'平面向量及其应用',grades:['高一','高三'],pts:[
+    {id:'p5_1',name:'数量积',diff:'medium'},{id:'p5_2',name:'坐标运算',diff:'easy'},{id:'p5_3',name:'向量共线',diff:'easy'}]},
+  {id:'ch6',name:'立体几何初步',grades:['高一','高三'],pts:[
+    {id:'p6_1',name:'平行与垂直',diff:'medium'},{id:'p6_2',name:'体积与表面积',diff:'medium'}]},
+  {id:'ch7',name:'复数',grades:['高一','高三'],pts:[
+    {id:'p7_1',name:'复数的运算',diff:'easy'}]},
+  // ===== 高二：选择性必修 =====
+  {id:'ch8',name:'空间向量与立体几何',grades:['高二','高三'],pts:[
+    {id:'p8_1',name:'空间向量运算',diff:'medium'},{id:'p8_2',name:'空间角计算',diff:'hard'}]},
+  {id:'ch9',name:'平面解析几何',grades:['高二','高三'],pts:[
+    {id:'p9_1',name:'直线方程',diff:'easy'},{id:'p9_2',name:'圆的方程',diff:'medium'},{id:'p9_3',name:'椭圆',diff:'medium'},
+    {id:'p9_4',name:'双曲线',diff:'medium'},{id:'p9_5',name:'抛物线',diff:'medium'},{id:'p9_6',name:'直线与圆锥曲线',diff:'hard'},{id:'p9_7',name:'轨迹方程',diff:'hard'}]},
+  {id:'ch10',name:'数列',grades:['高二','高三'],pts:[
+    {id:'p10_1',name:'等差数列',diff:'medium'},{id:'p10_2',name:'等比数列',diff:'medium'},{id:'p10_3',name:'数列求和',diff:'medium'},{id:'p10_4',name:'递推数列',diff:'hard'}]},
+  {id:'ch11',name:'导数及其应用',grades:['高二','高三'],pts:[
+    {id:'p11_1',name:'切线方程',diff:'medium'},{id:'p11_2',name:'单调性与极值',diff:'medium'},{id:'p11_3',name:'恒成立问题',diff:'hard'},{id:'p11_4',name:'零点问题',diff:'hard'}]},
+  {id:'ch12',name:'计数原理',grades:['高二','高三'],pts:[
+    {id:'p12_1',name:'排列组合',diff:'medium'},{id:'p12_2',name:'二项式定理',diff:'medium'}]},
+  {id:'ch13',name:'概率与统计',grades:['高二','高三'],pts:[
+    {id:'p13_1',name:'古典概型',diff:'easy'},{id:'p13_2',name:'分布与期望',diff:'medium'},{id:'p13_3',name:'正态分布',diff:'medium'},
+    {id:'p13_4',name:'统计图表',diff:'easy'},{id:'p13_5',name:'随机变量',diff:'medium'}]}
 ];
+
+// Helpers for grade-aware filtering
+function visibleChapters(){
+  if(!curGrade)return TREE;
+  return TREE.filter(c=>!c.grades||c.grades.includes(curGrade));
+}
+function visiblePoints(ch){
+  if(!curGrade)return ch.pts;
+  return ch.pts.filter(p=>!p.grades||p.grades.includes(curGrade));
+}
 
 // ==================== HELPERS ====================
 function $(id){return document.getElementById(id)}
@@ -410,26 +410,30 @@ function findPt(id){for(const ch of TREE)for(const p of ch.pts)if(p.id===id)retu
 function getChName(cid){const ch=TREE.find(c=>c.id===cid);return ch?ch.name:''}
 function getSettings(){try{return JSON.parse(localStorage.getItem('bjm_settings')||'{}')}catch(e){return{}}}
 
-// ==================== LaTeX PRE-PROCESSING (fix enumerate/itemize/align errors) ====================
+// ==================== LaTeX PRE-PROCESSING ====================
 function fixLatex(text){
   if(!text)return'';
   let t=text;
-  // Convert enumerate/itemize/description to array environments that MathJax understands
+  // Convert list environments to array (MathJax doesn't support enumerate/itemize natively)
   t=t.replace(/\\begin\{enumerate\*?\}(\s*\[.*?\])?/gi,'\\begin{array}{l}');
   t=t.replace(/\\end\{enumerate\*?\}/gi,'\\end{array}');
   t=t.replace(/\\begin\{itemize\*?\}/gi,'\\begin{array}{l}');
   t=t.replace(/\\end\{itemize\*?\}/gi,'\\end{array}');
   t=t.replace(/\\begin\{description\}/gi,'\\begin{array}{l}');
   t=t.replace(/\\end\{description\}/gi,'\\end{array}');
-  // Replace \item (with optional [label]) with line break + indent
+  // Replace \item[...] or \item with line break + indent
   t=t.replace(/\\item(\[.*?\])?\s*/gi,'\\\\[4pt] \\qquad ');
-  // Fix common problematic LaTeX: \tag, \nonumber (strip for inline display)
-  t=t.replace(/\\tag\{.*?\}/g,'');
-  t=t.replace(/\\nonumber/g,'');
+  // Convert \textcircled{n} to Unicode circled numbers
+  t=t.replace(/\\textcircled\{(\d+)\}/g,(m,n)=>{
+    const c=['⓪','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
+    const i=parseInt(n);return i<c.length?c[i]:'('+n+')';
+  });
+  // Strip \tag and \nonumber in inline contexts
+  t=t.replace(/\\tag\{.*?\}/g,'');t=t.replace(/\\nonumber/g,'');
   return t;
 }
 
-// ==================== MATHJAX RE-RENDER HELPER ====================
+// ==================== MATHJAX RE-RENDER ====================
 async function reRenderMath(el){
   if(window.MathJax&&MathJax.typesetPromise){
     try{await MathJax.typesetPromise(el?[el]:undefined)}catch(e){}
@@ -461,16 +465,14 @@ function saveDedup(){
   }
   totalDedupCount=total>1000?1000:total;
   localStorage.setItem('bjm_dedup',JSON.stringify(dedupHistory));
-  // Update sidebar
   if($('sDedup'))$('sDedup').textContent=totalDedupCount+'条';
   if($('quickDedupCount'))$('quickDedupCount').textContent='去重: '+totalDedupCount+'条';
 }
 function qHash(pid,txt,qt){
   if(!txt)return'';let s=txt||'';
-  let fm=(s.match(/\\[\(\[\{].*?\\[\)\]\}]/g)||[]).join(''); // Check for \( \) \[ \] too
-  let fm2=(s.match(/\$[^\$]+\$/g)||[]).join('');
-  let st=s.replace(/\$[^\$]+\$/g,'FORMULA').replace(/\\[\(\[].*?\\[\)\]]/g,'FORMULA').replace(/\d+(\.\d+)?/g,'N').replace(/\s+/g,'').substring(0,100);
-  return pid+'|'+(qt||'')+'|'+st+'|'+(fm+fm2);
+  let fm=(s.match(/\$[^\$]+\$/g)||[]).join('');
+  let st=s.replace(/\$[^\$]+\$/g,'FORMULA').replace(/\d+(\.\d+)?/g,'N').replace(/\s+/g,'').substring(0,100);
+  return pid+'|'+(qt||'')+'|'+st+'|'+fm;
 }
 function qFingerprint(txt){
   let s=txt||'';let lx=(s.match(/\$[^\$]+\$/g)||[]).join('');
@@ -514,7 +516,7 @@ function addDedup(pid,txt,qt){
   dedupHistory=h;saveDedup();
 }
 function clearDedup(){
-  if(confirm('确定清空去重历史？（清空后可能生成重复题目）')){localStorage.removeItem('bjm_dedup');dedupHistory={};consecDupCount=0;totalDedupCount=0;saveDedup();toast('去重历史已清空')}
+  if(confirm('确定清空去重历史？清空后可能生成重复题目')){localStorage.removeItem('bjm_dedup');dedupHistory={};consecDupCount=0;totalDedupCount=0;saveDedup();toast('去重历史已清空')}
 }
 function levDist(a,b){
   if(!a||!b)return 0;const m=a.length,n=b.length;
@@ -526,68 +528,59 @@ function levDist(a,b){
 
 // ==================== GRADE & GOAL SWITCHING ====================
 function renderGradePills(){
-  // Render onboarding grade buttons
   $('gradeSelGroup').innerHTML=Object.entries(GRADES).map(([k,v])=>
     `<button class="grade-pill${curGrade===k?' active':''}" onclick="selGrade('${k}')" id="obGrade_${k}">${v.icon} ${k}</button>`).join('');
-  // Update quick switch pills
-  for(const g of['高一','高二','高三']){
-    const el=$('gp_'+g);if(el){el.classList.toggle('active',curGrade===g)}
-  }
+  for(const g of['高一','高二','高三']){const el=$('gp_'+g);if(el)el.classList.toggle('active',curGrade===g)}
 }
 function selGrade(g){
-  curGrade=g;renderGradePills();curGoal='';
+  curGrade=g;renderGradePills();curGoal='';curPoint='';curChapter='';
   $('goalSelGroup').innerHTML=GRADES[g].goals.map(gl=>
-    `<button class="grade-pill" onclick="selGoal('${gl.id}')" id="obGoal_${gl.id}">${gl.label}<span style="font-size:10px;color:var(--sub);margin-left:3px">${gl.desc}</span></button>`).join('');
-  // Also update quick goal dropdown
+    `<button class="grade-pill" onclick="selGoal('${gl.id}')" id="obGoal_${gl.id}">${gl.label}<span style="font-size:10px;color:var(--sub);margin-left:2px">${gl.desc}</span></button>`).join('');
   const qgs=$('quickGoalSelect');
   if(qgs)qgs.innerHTML=GRADES[g].goals.map(gl=>`<option value="${gl.id}">${gl.label} (${gl.desc})</option>`).join('');
   updStart();
 }
 function selGoal(g){
   curGoal=g;
-  // Update visual selection in onboarding
   document.querySelectorAll('#goalSelGroup .grade-pill').forEach(b=>b.classList.remove('active'));
   const el=$('obGoal_'+g);if(el)el.classList.add('active');
-  // Sync quick goal dropdown
   const qgs=$('quickGoalSelect');if(qgs)qgs.value=g;
   updStart();
 }
 function updStart(){$('btnStart').disabled=!(curGrade&&curGoal)}
+
 function quickSwitchGrade(g){
+  // Clear current point when switching grades — prevents cross-grade point selection
+  curPoint='';curChapter='';localStorage.removeItem('bjm_point');
   curGrade=g;localStorage.setItem('bjm_grade',g);
   renderGradePills();
-  // Set a default goal for the grade if none selected
   const defaultGoal=GRADES[g].goals[0];
   curGoal=defaultGoal.id;localStorage.setItem('bjm_goal',curGoal);
   const qgs=$('quickGoalSelect');
-  if(qgs){
-    qgs.innerHTML=GRADES[g].goals.map(gl=>`<option value="${gl.id}">${gl.label} (${gl.desc})</option>`).join('');
-    qgs.value=curGoal;
-  }
+  if(qgs){qgs.innerHTML=GRADES[g].goals.map(gl=>`<option value="${gl.id}">${gl.label} (${gl.desc})</option>`).join('');qgs.value=curGoal}
   $('headerSub').textContent=getGoalDisp();
   $('hdrGrade').textContent=GRADES[g].icon+' '+g;
-  renderTree();updPtStats();updSidebar();
-  toast('已切换至 '+g+' · '+defaultGoal.label);
-  // Trigger new question generation if a knowledge point is selected
-  if(curPoint)startGen();
+  $('kpGradeHint').textContent='— 人教B版'+(g==='高一'?'必修':g==='高二'?'选择性必修':'综合');
+  // Hide question area, re-render tree with filtered chapters
+  $('questionCard').style.display='none';$('questionArea').style.display='none';
+  $('sidebarKpDetail').innerHTML='请选择知识点';
+  $('pointStats').innerHTML='';
+  renderChFilter();renderTree();updSidebar();
+  toast('已切换至 '+g+' · '+defaultGoal.label+'（人教B版'+(g==='高一'?'必修':g==='高二'?'选择性必修':'综合')+'）');
 }
 function quickSwitchGoal(gid){
-  curGoal=gid;localStorage.setItem('bjm_goal',gid);
-  $('headerSub').textContent=getGoalDisp();
-  updSidebar();
+  curGoal=gid;localStorage.setItem('bjm_goal',gid);$('headerSub').textContent=getGoalDisp();updSidebar();
   if(curPoint)startGen();
 }
 function showGradeSwitch(){
-  // Toggle the quick switch visibility
   const el=$('gradeQuickSwitch');
-  if(el.style.display==='none'){el.style.display='';el.classList.add('slide-up')}
-  else{el.style.display='none'}
+  if(el.style.display==='none'){el.style.display='';el.classList.add('slide-up')}else{el.style.display='none'}
 }
 function getGoalDisp(){
-  if(!curGrade||!curGoal)return'2026 北京卷';
+  if(!curGrade||!curGoal)return'2026 北京卷 · 人教B版';
   const g=GRADES[curGrade];if(!g)return'2026 北京卷';
   const gl=g.goals.find(x=>x.id===curGoal);
-  return gl?`${curGrade} · ${gl.label}`:'2026 北京卷';
+  return gl?`${curGrade} · ${gl.label}`:'2026 北京卷 · 人教B版';
 }
 
 // ==================== SETTINGS UI ====================
@@ -610,18 +603,12 @@ function showSettings(){
 function closeSettings(){$('settingsOverlay').style.display='none'}
 function saveSettings(){
   const p=$('setProvider').value;const cfg=PROVIDERS[p];
-  const s={
-    provider:p,apiKey:$('setApiKey').value.trim(),
-    baseUrl:$('setBaseUrl').value.trim()||cfg.baseURL,
-    model:$('setModel').value,batchSize:parseInt($('setBatch').value)||3,
-    table:$('setTable').value||'questions'
-  };
+  const s={provider:p,apiKey:$('setApiKey').value.trim(),baseUrl:$('setBaseUrl').value.trim()||cfg.baseURL,model:$('setModel').value,batchSize:parseInt($('setBatch').value)||3,table:$('setTable').value||'questions'};
   if(s.apiKey)localStorage.setItem('bjm_apikey_'+p,s.apiKey);
   else s.apiKey=localStorage.getItem('bjm_apikey_'+p)||'';
   if(!s.apiKey)localStorage.setItem('bjm_apikey_'+p,'');
   localStorage.setItem('bjm_settings',JSON.stringify(s));
-  batchSize=s.batchSize;
-  closeSettings();toast('设置已保存 ✓');updSidebar();
+  batchSize=s.batchSize;closeSettings();toast('设置已保存 ✓');updSidebar();
 }
 
 // ==================== API CALL (multi-provider, 90s timeout) ====================
@@ -630,48 +617,24 @@ async function callAI(sys,usr,timeoutMs=90000){
   let apiKey=s.apiKey||localStorage.getItem('bjm_apikey_'+p)||'';
   if(!apiKey){toast('请先在设置中配置 '+cfg.name+' 的 API Key');return null}
   const model=s.model||cfg.models[0];const baseUrl=s.baseUrl||cfg.baseURL;
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),timeoutMs);
+  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),timeoutMs);
   try{
     if(cfg.apiType==='claude'){
-      const r=await fetch(baseUrl+'/v1/messages',{
-        method:'POST',signal:controller.signal,
-        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-        body:JSON.stringify({model:model,max_tokens:4096,system:sys,messages:[{role:'user',content:usr}]})
-      });
-      clearTimeout(timeout);
-      if(!r.ok){const e=await r.text();throw new Error(`Claude ${r.status}: ${e.substring(0,200)}`)}
+      const r=await fetch(baseUrl+'/v1/messages',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:model,max_tokens:4096,system:sys,messages:[{role:'user',content:usr}]})});
+      clearTimeout(timeout);if(!r.ok){const e=await r.text();throw new Error(`Claude ${r.status}: ${e.substring(0,200)}`)}
       const d=await r.json();return d.content[0].text;
     }else if(cfg.apiType==='ernie'){
-      const r=await fetch(baseUrl+'/completions?access_token='+encodeURIComponent(apiKey),{
-        method:'POST',signal:controller.signal,
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:model,messages:[{role:'system',content:sys},{role:'user',content:usr}],temperature:0.8,max_output_tokens:4096})
-      });
-      clearTimeout(timeout);
-      if(!r.ok){const e=await r.text();throw new Error(`ERNIE ${r.status}: ${e.substring(0,200)}`)}
-      const d=await r.json();
-      if(d.result)return d.result;
-      if(d.choices&&d.choices[0])return d.choices[0].message.content;
+      const r=await fetch(baseUrl+'/completions?access_token='+encodeURIComponent(apiKey),{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify({model:model,messages:[{role:'system',content:sys},{role:'user',content:usr}],temperature:0.8,max_output_tokens:4096})});
+      clearTimeout(timeout);if(!r.ok){const e=await r.text();throw new Error(`ERNIE ${r.status}: ${e.substring(0,200)}`)}
+      const d=await r.json();if(d.result)return d.result;if(d.choices&&d.choices[0])return d.choices[0].message.content;
       throw new Error('ERNIE: unexpected response format');
     }else{
-      const url=baseUrl+'/chat/completions';
-      const r=await fetch(url,{
-        method:'POST',signal:controller.signal,
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-        body:JSON.stringify({model:model,messages:[{role:'system',content:sys},{role:'user',content:usr}],temperature:0.8,max_tokens:4096})
-      });
-      clearTimeout(timeout);
-      if(!r.ok){const e=await r.text();throw new Error(`${cfg.name} ${r.status}: ${e.substring(0,200)}`)}
-      const d=await r.json();
-      if(!d.choices||!d.choices[0])throw new Error(cfg.name+': 响应格式异常');
+      const r=await fetch(baseUrl+'/chat/completions',{method:'POST',signal:controller.signal,headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:model,messages:[{role:'system',content:sys},{role:'user',content:usr}],temperature:0.8,max_tokens:4096})});
+      clearTimeout(timeout);if(!r.ok){const e=await r.text();throw new Error(`${cfg.name} ${r.status}: ${e.substring(0,200)}`)}
+      const d=await r.json();if(!d.choices||!d.choices[0])throw new Error(cfg.name+': 响应格式异常');
       return d.choices[0].message.content;
     }
-  }catch(e){
-    clearTimeout(timeout);
-    if(e.name==='AbortError')throw new Error('请求超时（90秒），请尝试更换模型');
-    throw e;
-  }
+  }catch(e){clearTimeout(timeout);if(e.name==='AbortError')throw new Error('请求超时（90秒），请尝试更换模型');throw e}
 }
 
 // ==================== SUPABASE RAG (15 diverse reference questions) ====================
@@ -679,10 +642,12 @@ async function fetchRefQuestions(pid,grade,diff){
   if(!sb)return[];
   try{
     const tbl=$('setTable').value||'questions';
-    const allPtNames=[];for(const ch of TREE)for(const p of ch.pts)allPtNames.push(p.name);
+    const allPtNames=[];const vc=visibleChapters();
+    for(const ch of vc)for(const p of visiblePoints(ch))allPtNames.push(p.name);
+    // Fallback to all if visible list is empty
+    if(allPtNames.length===0)for(const ch of TREE)for(const p of ch.pts)allPtNames.push(p.name);
     const shuffled=allPtNames.sort(()=>Math.random()-0.5);
-    const diverse=[];const pt=findPt(pid);
-    if(pt)shuffled.unshift(pt.name);
+    const diverse=[];const pt=findPt(pid);if(pt)shuffled.unshift(pt.name);
     for(const n of shuffled){if(!diverse.includes(n))diverse.push(n);if(diverse.length>=4)break}
     const queries=[
       sb.from(tbl).select('*').like('考点','%'+diverse[0].substring(0,3)+'%').limit(7),
@@ -703,32 +668,40 @@ async function fetchRefQuestions(pid,grade,diff){
         }
       }
     }
-    refs.sort(()=>Math.random()-0.5);
-    return refs.slice(0,15);
+    refs.sort(()=>Math.random()-0.5);return refs.slice(0,15);
   }catch(e){console.warn('RAG fetch failed:',e);return[]}
 }
 
 // ==================== QUESTION GENERATION ====================
 function buildSys(){
-  return `你是2026年北京高考数学命题专家。严格按北京卷最新风格命题。
+  return `你是2026年北京高考数学命题专家。严格按北京人教B版教材和北京卷最新风格命题。
 
 2026北京卷特点：选择题10道（4分/题），填空题5道（5分/题），解答题6道。注重核心素养：数学抽象、逻辑推理、数学建模、直观想象、数学运算、数据分析。强调情境化命题。解答题常含探究发现型。压轴题考导数综合/解析几何探究/数列创新。
 
 【严禁事项——绝对不可违反】
 1. 绝对禁止输出数据库或参考题中的任何原题
 2. 绝对禁止对原题进行改编、翻译、微调、换数
-3. 绝对禁止生成与已存在题目高度相似的题目（换汤不换药）
+3. 绝对禁止生成与已存在题目高度相似的题目
 4. 每道题必须是100%全新原创命题
-5. 如果无法保证原创，宁可拒绝出题也不能重复
 
 命题铁律：不可超纲、不可偏题怪题、必须符合北京高考命题规范。
-注意：题目中如需使用列举结构，请直接使用\text{(1)}...\text{(2)}...格式，避免使用LaTeX的enumerate环境。
-所有数学公式用$...$（行内）或$$...$$（独立行）包裹。可使用align、aligned、cases等标准数学环境。
+
+【LaTeX格式要求——必须严格遵守】
+- 所有数学公式用$...$（行内公式）或$$...$$（独立行公式）包裹
+- 可使用 \\begin{cases}、\\begin{aligned}、\\begin{align}、\\begin{array} 等标准数学环境
+- 文本内容用 \\text{...} 包裹（如 \\text{则}、\\text{且}）
+- 垂直符号用 \\perp，平行符号用 \\parallel 或 \\mathrel{/\\kern-4pt/}
+- 向量用 \\vec{AB} 或 \\overrightarrow{AB}
+- 分数用 \\frac{}{}，上下标用 ^{} 和 _{}，求和用 \\sum，积分用 \\int
+- 箭头符号：\\Rightarrow \\Leftrightarrow \\to \\mapsto
+- 希腊字母：\\alpha \\beta \\gamma \\theta \\pi \\sigma \\lambda 等
+- 严禁使用 \\begin{enumerate}（改为 \\text{(1)}...\\text{(2)}...）
+- 严禁使用 \\textcircled{}（直接用①②③或 \\text{(1)}）
 
 输出前请自我验证：1)答案计算是否正确 2)解析推导是否完整 3)难度是否匹配 4)是否完全原创。
 
 输出严格JSON（禁止markdown包裹）：
-{"question":"完整题干","type":"单选/多选/填空/解答题","options":["A．...","B．..."...]或null,"answer":"正确答案","explanation":"详细解题过程","difficulty":"易/中/难","pointName":"最细考点名称","selfCheck":"已通过自我验证（含原创性确认）"}`;
+{"question":"完整题干（LaTeX格式正确）","type":"单选/多选/填空/解答题","options":["A．...","B．..."...]或null,"answer":"正确答案","explanation":"详细解题过程","difficulty":"易/中/难","pointName":"最细考点名称","selfCheck":"已通过自我验证"}`;
 }
 
 function buildUsr(pid,grade,diff,refs){
@@ -746,16 +719,16 @@ function buildUsr(pid,grade,diff,refs){
   }
   const types=['单选','单选','填空','解答题','单选','填空','解答题','单选','单选','解答题'];
   const assignedType=types[Math.floor(Math.random()*types.length)];
-  return `请生成一道北京${grade}数学题。
+  return `请生成一道北京${grade}数学题（人教B版教材范围）。
 考点：${pn} | 章节：${ch} | 难度：${diff} | 建议题型：${assignedType}
 ${recentBlock}
 ${refText}
 硬性要求：
 1. ★ 必须100%全新原创，严禁与以上任何题目相同或高度相似
-2. ★ 参考题仅用于了解北京卷风格和考点深度，严禁改编或模仿其具体内容
-3. ★ 请仔细核对已生成题目列表，如果可能重复，请主动换一个命题角度
-4. 题干中如有列举子问题请用\\text{(1)}...\\text{(2)}...格式，不要用\\begin{enumerate}
-5. 所有数学公式用$...$（行内）或$$...$$（独立行）包裹，可使用align,aligned,cases等环境
+2. ★ 题目难度和知识点范围严格对应${grade}人教B版教材（不超纲、不跨年级）
+3. ★ 参考题仅用于了解北京卷风格，严禁改编或模仿其具体内容
+4. LaTeX格式：所有公式用$...$（行内）或$$...$$（独立行），文本用\\text{...}
+5. 可用cases/aligned/align/array等数学环境，不可用enumerate/itemize
 6. 请先自我验证答案，确认无误后再输出JSON`;
 }
 
@@ -788,8 +761,7 @@ async function genBatch(pid,count,grade,diff){
   $('loadingMsg').textContent='正在生成高质量题目，请稍候...';
   $('loadingSub').textContent='检索参考题 · 去重比对 · 原创验证 · 答案校验';
   for(let i=0;i<count;i++){
-    updBatch(i,count,'loading');
-    $('loadingMsg').textContent=`正在生成第 ${i+1}/${count} 题...`;
+    updBatch(i,count,'loading');$('loadingMsg').textContent=`正在生成第 ${i+1}/${count} 题...`;
     const q=await genOne(pid,grade,diff,0,qs);
     if(q){q._idx=i;q._status='ready';qs.push(q);updBatch(i+1,count,'done')}else{updBatch(i,count,'failed')}
   }
@@ -803,8 +775,7 @@ function extractJSON(t){
   let m=t.match(/```(?:json)?\s*([\s\S]*?)```/);if(m){try{return JSON.parse(m[1])}catch(e){}}
   m=t.match(/\{[\s\S]*\}/);if(m){
     try{return JSON.parse(m[0])}catch(e){}
-    let fixed=m[0];
-    try{fixed=fixed.replace(/[\x00-\x1f]/g,' ').replace(/\t/g,' ');return JSON.parse(fixed)}catch(e2){}
+    let fixed=m[0];try{fixed=fixed.replace(/[\x00-\x1f]/g,' ').replace(/\t/g,' ');return JSON.parse(fixed)}catch(e2){}
   }
   return null;
 }
@@ -812,25 +783,42 @@ function extractJSON(t){
 // ==================== ONBOARDING ====================
 function renderOnboarding(){
   $('gradeSelGroup').innerHTML=Object.entries(GRADES).map(([k,v])=>
-    `<button class="grade-pill" onclick="selGrade('${k}')" id="obGrade_${k}">${v.icon} ${k}</button>`).join('');
+    `<button class="grade-pill" onclick="selGrade('${k}')" id="obGrade_${k}">${v.icon} ${k}<span style="font-size:10px;color:var(--sub);margin-left:3px">${v.desc}</span></button>`).join('');
 }
 
-// ==================== KNOWLEDGE TREE ====================
+// ==================== KNOWLEDGE TREE (grade-aware) ====================
 function renderChFilter(){
-  const s=$('chapterFilter');s.innerHTML='<option value="">全部章节</option>'+TREE.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const vc=visibleChapters();
+  const s=$('chapterFilter');s.innerHTML='<option value="">全部章节</option>'+vc.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
 }
 function renderTree(){
-  const cf=$('chapterFilter').value;const chs=cf?TREE.filter(c=>c.id===cf):TREE;
-  let h='';for(const c of chs){h+=`<div style="font-weight:600;font-size:12px;color:var(--sub);margin:10px 0 3px">${c.name}</div>`;
-    for(const p of c.pts){const act=curPoint===p.id;const st=getStats()[p.id]||{total:0,correct:0};const rt=st.total>0?Math.round(100*st.correct/st.total):null;
+  const cf=$('chapterFilter').value;
+  const vc=visibleChapters();
+  const chs=cf?vc.filter(c=>c.id===cf):vc;
+  let h='';let ptCount=0;
+  for(const c of chs){
+    const vpts=visiblePoints(c);if(vpts.length===0)continue;
+    h+=`<div style="font-weight:600;font-size:12px;color:var(--sub);margin:10px 0 3px">${c.name} <span style="font-weight:400;font-size:10px">(${vpts.length}个考点)</span></div>`;
+    for(const p of vpts){
+      ptCount++;const act=curPoint===p.id;const st=getStats()[p.id]||{total:0,correct:0};const rt=st.total>0?Math.round(100*st.correct/st.total):null;
       h+=`<div class="kp-item${act?' active':''}" onclick="selPoint('${p.id}')">
         <div class="dot ${act?'dot-on':'dot-off'}"></div><span style="flex:1">${p.name}</span>
         ${rt!==null?`<span class="tag ${rt>=80?'tag-ok':rt>=60?'tag-warn':'tag-pri'}" style="font-size:10px">${rt}%</span>`:''}
-        <span style="font-size:10px;color:#ccc">${st.total||0}题</span></div>`;}}
+        <span style="font-size:10px;color:#ccc">${st.total||0}题</span></div>`;
+    }
+  }
+  if(ptCount===0)h='<div style="color:var(--sub);font-size:13px;text-align:center;padding:20px">该年级暂无知识点，请切换年级</div>';
   $('knowledgeTree').innerHTML=h;
+  document.getElementById('kpGradeHint').textContent='— 人教B版'+(curGrade==='高一'?'必修':curGrade==='高二'?'选择性必修':curGrade==='高三'?'综合':'');
 }
-function selPoint(pid){curPoint=pid;const pt=findPt(pid);
-  if(pt){for(const c of TREE)for(const p of c.pts)if(p.id===pid){curChapter=c.id;break}}
+function selPoint(pid){
+  // Validate that the point is visible for current grade
+  const pt=findPt(pid);if(!pt)return;
+  const ch=TREE.find(c=>c.pts.includes(pt));if(!ch)return;
+  // Check if this point is visible for current grade
+  if(curGrade&&pt.grades&&!pt.grades.includes(curGrade)){toast('该考点不属于当前年级，请先切换年级');return}
+  if(curGrade&&ch.grades&&!ch.grades.includes(curGrade)&&(!pt.grades||!pt.grades.includes(curGrade))){toast('该考点不属于当前年级');return}
+  curPoint=pid;curChapter=ch.id;
   renderTree();updPtStats();updSidebar();startGen();
 }
 function updPtStats(){
@@ -839,8 +827,7 @@ function updPtStats(){
   const dl=(getDedup()[curPoint]||[]);const c=Date.now()-30*24*3600*1000;
   const rc=dl.filter(e=>e.date>c).length;
   $('pointStats').innerHTML=`已做 <b>${st.total}</b> 题 | 正确率 <b>${st.total>0?Math.round(100*st.correct/st.total):0}%</b> | 近30天不重复 <b>${rc}</b> 道`;
-  // Update sidebar KP detail
-  $('sidebarKpDetail').innerHTML=`<div style="font-weight:600;font-size:14px;color:#165DFF;margin-bottom:4px">${pt.name}</div>
+  $('sidebarKpDetail').innerHTML=`<div style="font-weight:600;font-size:13px;color:#165DFF;margin-bottom:4px">${pt.name}</div>
     <div>章节：${getChName(curChapter)}</div><div>难度：${pt.diff==='easy'?'基础':pt.diff==='medium'?'中档':'难题'}</div>
     <div>已做：${st.total}题 | 正确率：${st.total>0?Math.round(100*st.correct/st.total):0}%</div>`;
 }
@@ -851,16 +838,12 @@ function updSidebar(){
   $('sModel').textContent=(PROVIDERS[s.provider||'deepseek']||{}).name||'DeepSeek';
   $('sBatch').textContent=batchSize+'题/次';
   $('sMode').textContent=speedMode?'快速刷题':'精练模式';
-  // Stats
   const st=getStats();let t=0,c2=0;
   for(const k in st){t+=st[k].total||0;c2+=st[k].correct||0}
   $('sTotal').textContent=t;$('sCorrect').textContent=c2;$('sWrong').textContent=t-c2;
   $('sRate').textContent=t>0?Math.round(100*c2/t)+'%':'0%';
-  $('sErrors').textContent=getErrors().length+'道';
-  $('sDedup').textContent=totalDedupCount+'条';
-  // Header compact stats
-  $('hdrTotal').textContent=t+'题';
-  $('hdrRate').textContent=t>0?Math.round(100*c2/t)+'%':'--';
+  $('sErrors').textContent=getErrors().length+'道';$('sDedup').textContent=totalDedupCount+'条';
+  $('hdrTotal').textContent=t+'题';$('hdrRate').textContent=t>0?Math.round(100*c2/t)+'%':'--';
   $('hdrGrade').textContent=curGrade?GRADES[curGrade].icon+' '+curGrade:'选择年级';
 }
 
@@ -892,18 +875,17 @@ function renderQ(){
   submitted=false;selectedOpt=null;userFill='';const pt=findPt(curPoint);
   $('qGrade').textContent=curGrade||'高三';
   $('qPoint').textContent=curQ.pointName||(pt?pt.name:'');
-  // Difficulty tag with color
-  const dt=curQ.difficulty||'中';
-  const dtMap={易:'tag-easy',中:'tag-mid',难:'tag-hard'};
+  const dt=curQ.difficulty||'中';const dtMap={易:'tag-easy',中:'tag-mid',难:'tag-hard'};
   $('qDiffTag').textContent=dt;$('qDiffTag').className='tag '+(dtMap[dt]||'tag-warn');
   $('qType').textContent='['+(curQ.type||'未知')+']';
-  // Apply LaTeX fix before setting innerHTML
+  // Apply fixLatex before setting innerHTML
   $('qStem').innerHTML=fixLatex(curQ.question);
   if(curQ.options&&Array.isArray(curQ.options)&&curQ.options.length>=2){
     $('qOptions').style.display='';$('qFill').style.display='none';
     $('qOptions').innerHTML=curQ.options.map((o,i)=>
       `<div class="option-card" onclick="selOpt(${i})" id="opt_${i}"><div class="opt-circle" id="optc_${i}">${String.fromCharCode(65+i)}</div><span style="font-size:15px;line-height:1.7;flex:1">${fixLatex(o.replace(/^[A-D][．.、\s]+/,''))}</span></div>`).join('')
   }else{$('qOptions').style.display='none';$('qFill').style.display='';$('fillInput').value='';$('fillInput').focus()}
+  // Re-render MathJax on question card
   reRenderMath($('questionCard'));
 }
 function selOpt(i){if(submitted)return;selectedOpt=i;
@@ -926,6 +908,7 @@ async function submitAnswer(){
     <div style="font-size:14px"><b>正确答案：</b>${ca}</div>${ua!==ca?`<div style="font-size:13px;color:var(--sub);margin-top:2px">你的答案：${ua}</div>`:''}
     ${curQ.explanation?`<div style="margin-top:12px;padding:12px;background:var(--card-bg);border-radius:8px;font-size:13px;line-height:1.8"><b>解析：</b><br>${fixLatex(curQ.explanation)}</div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-pri" onclick="nextQ()">下一题 →</button><button class="btn btn-err btn-sm" onclick="addErr()">📝 加入错题本</button></div></div>`;
+  // Re-render MathJax for result and explanation
   reRenderMath(r);
   updStats();updErrList();if(!ok)addErr();
 }
@@ -971,15 +954,14 @@ async function exportPDF(){
       const ans=Array.isArray(e.answer)?e.answer.join(','):(e.answer||'');
       const exp=fixLatex(e.explanation||'');
       const diffLabel=e.difficulty==='easy'?'基础':(e.difficulty==='medium'?'中档':'难题');
-      const userAns=e.userAnswer||'未作答';
       body+=`<div style="border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:14px;page-break-inside:avoid;background:#fff">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:7px">
           <span style="font-weight:700;color:#165DFF;font-size:13px">${i+1}. ${e.pointName||e.chapterName||''}</span>
           <span style="font-size:10px;color:#999">${diffLabel} | ${e.date||''} | ${e.type||''}</span>
         </div>
         <div style="font-size:14px;line-height:1.9;margin-bottom:8px;color:#333">${qText}</div>
-        ${e.options?`<div style="font-size:12px;color:#666;margin-bottom:6px;padding:8px;background:#f9fafb;border-radius:6px">${Array.isArray(e.options)?e.options.map(o=>fixLatex(o)).join('<br>'):fixLatex(e.options)}</div>`:''}
-        <div style="font-size:12px;color:#F43F5E;margin-bottom:2px"><b>你的作答：</b>${userAns}</div>
+        ${e.options?`<div style="font-size:12px;color:#666;margin-bottom:6px;padding:8px;background:#f9fafb;border-radius:6px">${Array.isArray(e.options)?e.options.map(o=>fixLatex(o)).join('<br>'):fixLatex(String(e.options))}</div>`:''}
+        <div style="font-size:12px;color:#F43F5E;margin-bottom:2px"><b>你的作答：</b>${e.userAnswer||'未作答'}</div>
         <div style="font-size:12px;color:#36D399;margin-bottom:2px"><b>正确答案：</b>${ans}</div>
         ${exp?`<div style="font-size:11px;color:#666;line-height:1.8;margin-top:6px;padding:10px;background:#f0fdf6;border-radius:6px"><b>解析：</b><br>${exp}</div>`:''}
       </div>`;
@@ -989,27 +971,20 @@ async function exportPDF(){
     const exportHTML=`<!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8">
-<style>
-  @page{size:A4;margin:18mm}body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;color:#333;line-height:1.6;font-size:12px}
-  .header{text-align:center;border-bottom:2px solid #165DFF;padding-bottom:10px;margin-bottom:20px}
-  .header h1{font-size:18px;color:#165DFF;margin:0}.header p{font-size:10px;color:#999;margin:3px 0 0}
-  mjx-container{overflow-x:auto;max-width:100%}
-</style>
-<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true,processEnvironments:true,packages:{'[+]':['base','ams','noerrors','noundefined']}},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};<\/script>
+<style>@page{size:A4;margin:18mm}body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;color:#333;line-height:1.6;font-size:12px}.header{text-align:center;border-bottom:2px solid #165DFF;padding-bottom:10px;margin-bottom:20px}.header h1{font-size:18px;color:#165DFF;margin:0}.header p{font-size:10px;color:#999;margin:3px 0 0}mjx-container{overflow-x:auto;max-width:100%}</style>
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true,processEnvironments:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};<\/script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"><\/script>
 </head>
-<body>
-  <div class="header"><h1>北京高中数学错题本</h1><p>导出日期：${now.toLocaleDateString('zh-CN')} | 共 ${es.length} 道错题 | 年级：${curGrade||'高三'}</p></div>
-  ${body}
-</body></html>`;
+<body><div class="header"><h1>北京高中数学错题本</h1><p>导出日期：${now.toLocaleDateString('zh-CN')} | 共 ${es.length} 道错题 | 年级：${curGrade||'高三'}</p></div>${body}</body></html>`;
     const container=document.createElement('div');
     container.style.cssText='position:fixed;left:-9999px;top:0;width:800px;background:#fff;z-index:-1';
     container.innerHTML=exportHTML;
     document.body.appendChild(container);
     overlay.querySelector('.text').textContent='正在渲染数学公式...';
+    // Wait for MathJax CDN to load inside the container + render
     await new Promise(r=>setTimeout(r,2500));
     if(window.MathJax&&MathJax.typesetPromise){
-      try{await MathJax.typesetPromise([container]);console.log('PDF MathJax rendered')}catch(e){console.warn('PDF MathJax error:',e)}
+      try{await MathJax.typesetPromise([container])}catch(e){console.warn('PDF MathJax:',e)}
     }
     await new Promise(r=>setTimeout(r,1500));
     overlay.querySelector('.text').textContent='正在生成PDF文件...';
@@ -1021,7 +996,7 @@ async function exportPDF(){
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
         pagebreak:{mode:['avoid-all','css','legacy']}
       }).from(container).save();
-      toast(`PDF已导出：共${es.length}道错题`);
+      toast(`PDF已导出：共${es.length}道错题，公式清晰`);
     }else{
       const blob=new Blob([exportHTML],{type:'text/html;charset=utf-8'});
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -1036,15 +1011,11 @@ async function exportPDF(){
 // ==================== STATS & DARK ====================
 function updStats(){
   const st=getStats();let t=0,c2=0;for(const k in st){t+=st[k].total||0;c2+=st[k].correct||0}
-  $('hdrTotal').textContent=t+'题';
-  $('hdrRate').textContent=t>0?Math.round(100*c2/t)+'%':'--';
-  updSidebar();
+  $('hdrTotal').textContent=t+'题';$('hdrRate').textContent=t>0?Math.round(100*c2/t)+'%':'--';updSidebar();
 }
 function toggleDark(){
-  darkMode=!darkMode;
-  document.body.classList.toggle('dark',darkMode);
-  $('btnDark').textContent=darkMode?'☀️':'🌙';
-  localStorage.setItem('bjm_dark',darkMode?'1':'0');
+  darkMode=!darkMode;document.body.classList.toggle('dark',darkMode);
+  $('btnDark').textContent=darkMode?'☀️':'🌙';localStorage.setItem('bjm_dark',darkMode?'1':'0');
 }
 function switchMode(){speedMode=!speedMode;$('btnMode').textContent=speedMode?'⚡ 刷题':'📝 精练';toast(speedMode?'刷题模式（快速批处理）':'精练模式（逐题精讲）');updSidebar()}
 
@@ -1065,16 +1036,27 @@ function init(){
     $('knowledgePanel').style.display='';
     $('hdrGrade').textContent=GRADES[sg]?GRADES[sg].icon+' '+sg:'选择年级';
     $('headerSub').textContent=getGoalDisp();
-    // Fill quick goal dropdown
+    $('kpGradeHint').textContent='— 人教B版'+(sg==='高一'?'必修':sg==='高二'?'选择性必修':'综合');
     const qgs=$('quickGoalSelect');
-    if(qgs){
-      qgs.innerHTML=GRADES[sg].goals.map(gl=>`<option value="${gl.id}"${gl.id===so?' selected':''}>${gl.label} (${gl.desc})</option>`).join('');
+    if(qgs)qgs.innerHTML=GRADES[sg].goals.map(gl=>`<option value="${gl.id}"${gl.id===so?' selected':''}>${gl.label} (${gl.desc})</option>`).join('');
+    // Validate stored point is visible for current grade
+    if(sp){
+      const storedPt=findPt(sp);
+      if(storedPt){
+        const storedCh=TREE.find(c=>c.pts.includes(storedPt));
+        const isVisible=!curGrade||(storedCh&&storedCh.grades&&storedCh.grades.includes(curGrade))||(storedPt.grades&&storedPt.grades.includes(curGrade));
+        if(isVisible||!curGrade){
+          curPoint=sp;selPoint(sp);
+        }else{
+          // Point not visible for this grade, clear it
+          localStorage.removeItem('bjm_point');
+        }
+      }
     }
-    if(sp){curPoint=sp;selPoint(sp)}
     updStats();updPtStats();
   }
-  // Ensure re-render after a short delay (MathJax may not be ready at DOMContentLoaded)
-  setTimeout(()=>reRenderMath(document.body),1200);
+  // Ensure MathJax renders any static content after page load
+  setTimeout(()=>reRenderMath(document.body),1500);
 }
 function startPractice(){
   if(!curGrade||!curGoal)return;
@@ -1085,12 +1067,10 @@ function startPractice(){
   $('knowledgePanel').style.display='';
   $('hdrGrade').textContent=GRADES[curGrade]?GRADES[curGrade].icon+' '+curGrade:'';
   $('headerSub').textContent=getGoalDisp();
-  // Fill quick goal dropdown
+  $('kpGradeHint').textContent='— 人教B版'+(curGrade==='高一'?'必修':curGrade==='高二'?'选择性必修':'综合');
   const qgs=$('quickGoalSelect');
-  if(qgs){
-    qgs.innerHTML=GRADES[curGrade].goals.map(gl=>`<option value="${gl.id}"${gl.id===curGoal?' selected':''}>${gl.label} (${gl.desc})</option>`).join('');
-  }
-  renderTree();updSidebar();updPtStats();
+  if(qgs)qgs.innerHTML=GRADES[curGrade].goals.map(gl=>`<option value="${gl.id}"${gl.id===curGoal?' selected':''}>${gl.label} (${gl.desc})</option>`).join('');
+  renderChFilter();renderTree();updSidebar();updPtStats();
   toast('选择知识点开始刷题！');
 }
 const _selPoint=selPoint;selPoint=function(p){_selPoint(p);if(curGrade)localStorage.setItem('bjm_point',p)};
