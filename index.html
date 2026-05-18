@@ -17,70 +17,112 @@ tailwind.config = {
   }
 }
 </script>
-<!-- MathJax 3 global config: must load BEFORE the MathJax script -->
 <script>
 MathJax = {
   tex: {
     inlineMath: [['$', '$'], ['\\(', '\\)']],
     displayMath: [['$$', '$$'], ['\\[', '\\]']],
     processEscapes: true,
-    processRefs: true,
-    tags: 'ams'
+    processEnvironments: true,
+    tags: 'ams',
+    packages: {'[+]': ['base', 'ams', 'newcommand', 'noerrors', 'noundefined', 'color', 'cancel']}
   },
+  loader: {load: ['[tex]/noerrors', '[tex]/noundefined', '[tex]/cancel', '[tex]/color']},
   options: {
     skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-    ignoreHtmlClass: 'no-mathjax'
+    ignoreHtmlClass: 'no-mathjax',
+    enableMenu: false
   },
-  chtml: {
-    matchFontHeight: true,
-    scale: 1
-  }
+  chtml: {matchFontHeight: true, scale: 1, minScale: 0.8}
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-  .card{background:#fff;border-radius:16px;border:1px solid #f0f0f0;padding:20px;transition:all 0.2s}
-  .card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.06)}
-  .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;user-select:none}
+  :root{--bg:#f6f7fb;--card-bg:#fff;--card-bd:#eef0f5;--text:#1a1a2e;--sub:#888;--hd-bg:rgba(255,255,255,0.9)}
+  body.dark{--bg:#141824;--card-bg:#1e2235;--card-bd:#2a2f45;--text:#d8dae6;--sub:#8a8ea0;--hd-bg:rgba(20,24,36,0.92)}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;min-height:100vh;margin:0;transition:background 0.3s,color 0.3s}
+  .card{background:var(--card-bg);border-radius:14px;border:1px solid var(--card-bd);padding:18px;transition:all 0.2s}
+  .card:hover{box-shadow:0 2px 16px rgba(0,0,0,0.05)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;user-select:none;white-space:nowrap}
   .btn:active{transform:scale(0.96)}
   .btn-pri{background:#165DFF;color:#fff}.btn-pri:hover{background:#0E42D6}
   .btn-out{border:2px solid #165DFF;color:#165DFF;background:transparent}.btn-out:hover{background:#E8F0FF}
-  .btn-ghost{background:transparent;color:#666}.btn-ghost:hover{background:#f5f5f5}
+  .btn-ghost{background:transparent;color:var(--sub)}.btn-ghost:hover{background:rgba(0,0,0,0.04)}
+  body.dark .btn-out:hover{background:rgba(22,93,255,0.12)}
+  body.dark .btn-ghost:hover{background:rgba(255,255,255,0.05)}
   .btn-ok{background:#36D399;color:#fff}.btn-warn{background:#F97316;color:#fff}.btn-err{background:#F43F5E;color:#fff}
-  .btn-sm{padding:6px 12px;font-size:12px}
-  .input{width:100%;padding:12px 16px;border-radius:12px;border:1px solid #e5e5e5;background:#f9fafb;font-size:14px;outline:none;transition:border-color 0.2s;box-sizing:border-box}
+  .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+  .btn-lg{padding:13px 28px;font-size:16px;border-radius:12px}
+  .input{width:100%;padding:12px 16px;border-radius:10px;border:1px solid #e0e3ea;background:#fafbfc;font-size:15px;outline:none;transition:border-color 0.2s;box-sizing:border-box;color:var(--text)}
+  body.dark .input{background:#252a3a;border-color:#3a3f55;color:#d8dae6}
   .input:focus{border-color:#165DFF;box-shadow:0 0 0 3px rgba(22,93,255,0.1)}
-  select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px}
-  .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:500}
-  .tag-pri{background:#E8F0FF;color:#165DFF}.tag-ok{background:#e6f9f1;color:#2ea87a}.tag-warn{background:#fff4ed;color:#e0691a}
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);z-index:9999;background:#1a1a1a;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,0.2);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275)}
+  select.input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'%3E%3C/path%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+  .tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:7px;font-size:11px;font-weight:600;letter-spacing:0.02em}
+  .tag-pri{background:#E8F0FF;color:#165DFF}.tag-ok{background:#e6f9f1;color:#1d9a5e}.tag-warn{background:#fff4ed;color:#d4691a}
+  .tag-easy{background:#e6f9f1;color:#1d9a5e}.tag-mid{background:#fff8e6;color:#b8780a}.tag-hard{background:#fef0f0;color:#d43030}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);z-index:9999;background:#1a1a1a;color:#fff;padding:12px 24px;border-radius:12px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,0.25);transition:transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);max-width:90vw;text-align:center}
   .toast.show{transform:translateX(-50%) translateY(0)}
-  .fade-in{animation:fadeIn 0.35s ease-out}@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-  .slide-up{animation:slideUp 0.3s ease-out}@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-  .ring-pri{box-shadow:0 0 0 2px #165DFF}
-  body{background:#f8f9fb;color:#1a1a2e;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;min-height:100vh;margin:0}
-  @media(max-width:640px){.btn{padding:8px 14px;font-size:13px}.card{padding:14px}}
-  .option-card{cursor:pointer;border:2px solid #e5e5e5;border-radius:12px;padding:14px 16px;transition:all 0.2s;display:flex;align-items:center;gap:12px}
+  .fade-in{animation:fadeIn 0.3s ease-out}@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .slide-up{animation:slideUp 0.3s ease-out}@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  body{background:var(--bg)}
+
+  /* ---- Two-column layout ---- */
+  .main-grid{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+  @media(max-width:860px){.main-grid{grid-template-columns:1fr}}
+  @media(max-width:640px){.btn{padding:8px 14px;font-size:13px}.card{padding:14px}.main-grid{gap:12px}}
+
+  /* ---- Sidebar ---- */
+  .sidebar-stats{display:flex;flex-direction:column;gap:8px}
+  .stat-mini{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--card-bd)}
+  .stat-mini:last-child{border-bottom:none}
+  .stat-val{font-weight:700;font-size:14px}
+
+  /* ---- Question area ---- */
+  .q-stem{font-size:16px;line-height:2.0;padding:4px 0;word-break:break-word}
+  @media(max-width:640px){.q-stem{font-size:15px;line-height:1.85}}
+  .option-card{cursor:pointer;border:2px solid #e0e3ea;border-radius:12px;padding:13px 16px;transition:all 0.2s;display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+  body.dark .option-card{border-color:#3a3f55}
   .option-card:hover{border-color:#165DFF;background:rgba(22,93,255,0.03)}
-  .option-card.selected{border-color:#165DFF;background:rgba(22,93,255,0.06)}
-  .opt-circle{width:36px;height:36px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#666;flex-shrink:0;transition:all 0.2s}
+  .option-card.selected{border-color:#165DFF;background:rgba(22,93,255,0.06);box-shadow:0 0 0 1px rgba(22,93,255,0.2)}
+  .opt-circle{width:32px;height:32px;border-radius:50%;background:#f0f2f5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#666;flex-shrink:0;transition:all 0.2s}
+  body.dark .opt-circle{background:#2a2f45;color:#aaa}
   .option-card.selected .opt-circle{background:#165DFF;color:#fff}
-  .kp-item{cursor:pointer;border-radius:10px;padding:8px 12px;transition:all 0.15s;display:flex;align-items:center;gap:8px;font-size:14px}
-  .kp-item:hover{background:#f0f4ff}
+
+  /* ---- Knowledge tree ---- */
+  .kp-item{cursor:pointer;border-radius:8px;padding:7px 10px;transition:all 0.15s;display:flex;align-items:center;gap:7px;font-size:13px}
+  .kp-item:hover{background:rgba(22,93,255,0.04)}
   .kp-item.active{background:#E8F0FF;color:#165DFF;font-weight:600}
-  .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}.dot-on{background:#165DFF}.dot-off{background:#ddd}
-  .result-box{border-radius:12px;padding:16px}
-  .result-ok{background:#f0fdf6;border:1px solid #bbf7d0}.result-err{background:#fef2f2;border:1px solid #fecaca}
-  /* PDF export loading */
+  body.dark .kp-item.active{background:#1a2a4a;color:#5b8dff}
+  .dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}.dot-on{background:#165DFF}.dot-off{background:#ccd0d8}
+
+  /* ---- Result boxes ---- */
+  .result-box{border-radius:12px;padding:16px;margin-top:12px}
+  .result-ok{background:#f0fdf6;border:1px solid #bbf7d0}
+  body.dark .result-ok{background:#0a2a1a;border-color:#1a5a3a}
+  .result-err{background:#fef2f2;border:1px solid #fecaca}
+  body.dark .result-err{background:#2a0a0a;border-color:#5a1a1a}
+
+  /* ---- Grade switch pills ---- */
+  .grade-pill{border:1.5px solid #e0e3ea;background:transparent;color:var(--text);padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+  .grade-pill:hover{border-color:#165DFF;color:#165DFF}
+  .grade-pill.active{background:#165DFF;border-color:#165DFF;color:#fff}
+  body.dark .grade-pill{border-color:#3a3f55}
+  body.dark .grade-pill.active{background:#165DFF;border-color:#165DFF}
+
+  /* ---- PDF overlay ---- */
   .pdf-loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
   .pdf-loading-overlay .spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite}
   .pdf-loading-overlay .text{color:#fff;font-size:15px;font-weight:500}
   @keyframes spin{to{transform:rotate(360deg)}}
-  /* Fix MathJax display in WeChat WebView */
+
+  /* ---- MathJax overflow for WeChat ---- */
   mjx-container{overflow-x:auto;overflow-y:hidden;max-width:100%}
   mjx-container[jax="CHTML"][display="true"]{overflow-x:auto}
+
+  /* ---- Onboarding overlay ---- */
+  .onboard-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:45;display:flex;align-items:center;justify-content:center;padding:16px}
 </style>
 </head>
 <body>
@@ -89,122 +131,170 @@ MathJax = {
 <div id="toast" class="toast"></div>
 
 <!-- Header -->
-<header style="background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);border-bottom:1px solid #f0f0f0;position:sticky;top:0;z-index:40">
-  <div style="max-width:960px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="width:40px;height:40px;background:#165DFF;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px">B</div>
+<header id="mainHeader" style="background:var(--hd-bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--card-bd);position:sticky;top:0;z-index:40;transition:background 0.3s">
+  <div style="max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;background:#165DFF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:15px;flex-shrink:0">B</div>
       <div>
-        <div style="font-weight:700;font-size:16px;color:#1a1a2e">北京高中数学智能刷题</div>
-        <div style="font-size:11px;color:#999" id="headerSub">2026 北京卷 · 新课标</div>
+        <div style="font-weight:700;font-size:15px;line-height:1.2">北京高中数学刷题</div>
+        <div style="font-size:10px;color:var(--sub);line-height:1.2" id="headerSub">2026 北京卷</div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
-      <span style="font-size:11px;background:#E8F0FF;color:#165DFF;padding:4px 10px;border-radius:20px;font-weight:500" id="badgeCount">0题</span>
-      <button class="btn btn-ghost" style="font-size:18px;padding:6px 8px" onclick="toggleDark()" id="btnDark" title="暗色模式">🌙</button>
-      <button class="btn btn-ghost" style="font-size:18px;padding:6px 8px" onclick="showSettings()" title="设置">⚙️</button>
+      <!-- Compact stats in header -->
+      <span style="font-size:11px;color:var(--sub)" id="hdrTotal">0题</span>
+      <span style="font-size:11px;color:#36D399;font-weight:600" id="hdrRate">--</span>
+      <span style="font-size:11px;background:#E8F0FF;color:#165DFF;padding:3px 10px;border-radius:20px;font-weight:500;cursor:pointer" onclick="showGradeSwitch()" id="hdrGrade">选择年级</span>
+      <button class="btn btn-ghost" style="font-size:16px;padding:4px 6px" onclick="toggleDark()" id="btnDark" title="暗色模式">🌙</button>
+      <button class="btn btn-ghost" style="font-size:16px;padding:4px 6px" onclick="showSettings()" title="设置">⚙️</button>
     </div>
   </div>
 </header>
 
 <!-- Main -->
-<main style="max-width:960px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:20px">
+<main style="max-width:1100px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:16px">
 
-  <!-- Onboarding -->
-  <section id="onboarding" class="card fade-in">
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="width:64px;height:64px;background:#E8F0FF;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">🎯</div>
-      <h2 style="font-size:20px;font-weight:700;margin:0 0 4px">欢迎使用智能刷题</h2>
-      <p style="font-size:13px;color:#999;margin:0">选择年级和目标，开始高效备考</p>
+  <!-- Quick Grade Switch (hidden by default, shown after practice starts) -->
+  <div id="gradeQuickSwitch" style="display:none" class="card">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--sub);flex-shrink:0">年级：</span>
+      <button class="grade-pill active" id="gp_高一" onclick="quickSwitchGrade('高一')">📗 高一</button>
+      <button class="grade-pill" id="gp_高二" onclick="quickSwitchGrade('高二')">📘 高二</button>
+      <button class="grade-pill" id="gp_高三" onclick="quickSwitchGrade('高三')">📙 高三</button>
+      <span style="font-size:11px;color:var(--sub);margin-left:8px">目标：</span>
+      <select id="quickGoalSelect" class="input" style="width:auto;padding:6px 12px;font-size:12px;border-radius:8px" onchange="quickSwitchGoal(this.value)"></select>
+      <span style="font-size:11px;color:var(--sub);margin-left:auto" id="quickDedupCount">去重: 0条</span>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="gradeSelector"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="goalSelector"></div>
-    <button class="btn btn-pri" style="width:100%;justify-content:center;margin-top:16px;padding:14px;font-size:16px" id="btnStart" onclick="startPractice()" disabled>开始刷题 →</button>
-  </section>
+  </div>
 
-  <!-- Stats Bar -->
-  <section id="statsBar" style="display:none;display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
-    <div class="card" style="text-align:center;padding:16px 12px"><div style="font-size:28px;font-weight:700;color:#165DFF" id="statTotal">0</div><div style="font-size:11px;color:#999;margin-top:2px">总题数</div></div>
-    <div class="card" style="text-align:center;padding:16px 12px"><div style="font-size:28px;font-weight:700;color:#36D399" id="statCorrect">0</div><div style="font-size:11px;color:#999;margin-top:2px">正确</div></div>
-    <div class="card" style="text-align:center;padding:16px 12px"><div style="font-size:28px;font-weight:700;color:#F43F5E" id="statWrong">0</div><div style="font-size:11px;color:#999;margin-top:2px">错误</div></div>
-    <div class="card" style="text-align:center;padding:16px 12px"><div style="font-size:28px;font-weight:700;color:#F97316" id="statRate">0%</div><div style="font-size:11px;color:#999;margin-top:2px">正确率</div></div>
-  </section>
+  <!-- Two-column grid: main content + sidebar -->
+  <div class="main-grid" id="mainGrid" style="display:none">
+    <!-- LEFT: Main content -->
+    <div style="display:flex;flex-direction:column;gap:16px">
 
-  <!-- Knowledge Panel -->
-  <section id="knowledgePanel" class="card fade-in" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <h3 style="font-size:18px;font-weight:700;margin:0">📚 知识点</h3>
-      <div style="display:flex;gap:8px">
-        <select id="chapterFilter" onchange="renderTree()" style="font-size:12px;padding:6px 12px;border-radius:8px;border:1px solid #e5e5e5;background:#f9fafb;outline:none"></select>
-        <button class="btn btn-ghost btn-sm" onclick="switchMode()" id="btnMode">⚡ 刷题模式</button>
-      </div>
-    </div>
-    <div id="knowledgeTree" style="max-height:300px;overflow-y:auto"></div>
-    <div id="pointStats" style="font-size:12px;color:#999;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0"></div>
-  </section>
+      <!-- Knowledge Panel (compact) -->
+      <section id="knowledgePanel" class="card" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h3 style="font-size:15px;font-weight:700;margin:0">📚 知识点</h3>
+          <div style="display:flex;gap:6px">
+            <select id="chapterFilter" onchange="renderTree()" style="font-size:11px;padding:5px 10px;border-radius:7px;border:1px solid #e0e3ea;background:var(--card-bg);color:var(--text);outline:none"></select>
+            <button class="btn btn-ghost btn-sm" onclick="switchMode()" id="btnMode">⚡ 刷题</button>
+          </div>
+        </div>
+        <div id="knowledgeTree" style="max-height:220px;overflow-y:auto"></div>
+        <div id="pointStats" style="font-size:11px;color:var(--sub);margin-top:8px;padding-top:8px;border-top:1px solid var(--card-bd)"></div>
+      </section>
 
-  <!-- Question Area -->
-  <section id="questionArea" style="display:none">
-    <div id="loadingCard" class="card" style="display:none;text-align:center;padding:40px">
-      <div style="width:40px;height:40px;border:3px solid #E8F0FF;border-top-color:#165DFF;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
-      <p style="color:#999;font-size:14px" id="loadingMsg">正在生成高质量题目，请稍候...</p>
-      <p style="color:#bbb;font-size:12px;margin-top:4px" id="loadingSub">从Supabase检索参考题 · 去重检查 · 质量验证</p>
-    </div>
-    <div id="batchProgress" class="card" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <span style="font-size:14px;font-weight:500">批次进度</span>
-        <span style="font-size:12px;color:#999" id="batchLabel">0/0</span>
-      </div>
-      <div style="width:100%;height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden">
-        <div style="height:100%;background:#165DFF;border-radius:3px;transition:width 0.3s" id="batchBar" style="width:0%"></div>
-      </div>
-      <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap" id="batchDots"></div>
-    </div>
-    <div id="questionCard" class="card fade-in" style="display:none">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <span class="tag tag-pri" id="qGrade"></span>
-        <span class="tag tag-ok" id="qPoint"></span>
-        <span class="tag tag-warn" id="qDiff"></span>
-        <span style="font-size:12px;color:#999;margin-left:auto" id="qType"></span>
-      </div>
-      <div id="qStem" style="font-size:15px;line-height:1.8;margin-bottom:16px"></div>
-      <div id="qOptions" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
-      <div id="qFill" style="display:none;margin-bottom:16px">
-        <input type="text" id="fillInput" class="input" placeholder="输入你的答案..." onkeydown="if(event.key==='Enter')submitAnswer()">
-      </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-        <button id="btnSubmit" class="btn btn-pri" onclick="submitAnswer()">✓ 提交答案</button>
-        <button class="btn btn-out" onclick="skipQuestion()">↪ 换一题</button>
-        <button class="btn btn-ghost btn-sm" onclick="showHint()">💡 提示</button>
-      </div>
-      <div id="qResult" style="display:none;margin-top:16px"></div>
-    </div>
-  </section>
+      <!-- Question Area -->
+      <section id="questionArea" style="display:none">
+        <div id="loadingCard" class="card" style="display:none;text-align:center;padding:36px 20px">
+          <div style="width:36px;height:36px;border:3px solid #E8F0FF;border-top-color:#165DFF;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px"></div>
+          <p style="color:var(--sub);font-size:14px;margin:0" id="loadingMsg">正在生成高质量题目，请稍候...</p>
+          <p style="color:#bbb;font-size:11px;margin:4px 0 0" id="loadingSub">检索参考题 · 去重比对 · 原创验证</p>
+        </div>
 
-  <!-- Error Notebook -->
-  <section id="errorArea" class="card" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h3 style="font-size:18px;font-weight:700;margin:0">📝 错题本 <span style="font-size:12px;color:#999;font-weight:400" id="errCount"></span></h3>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-warn btn-sm" onclick="exportPDF()">📄 导出PDF</button>
-        <button class="btn btn-out btn-sm" onclick="exportErrors()">导出TXT</button>
-        <button class="btn btn-err btn-sm" onclick="clearErrors()">清空</button>
-      </div>
+        <!-- Batch progress (moved above question card) -->
+        <div id="batchProgress" class="card" style="display:none;padding:12px 16px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:12px;font-weight:600;white-space:nowrap">📋 批次</span>
+            <div style="flex:1;height:5px;background:#eef0f5;border-radius:3px;overflow:hidden">
+              <div style="height:100%;background:#165DFF;border-radius:3px;transition:width 0.3s" id="batchBar" style="width:0%"></div>
+            </div>
+            <span style="font-size:11px;color:var(--sub);white-space:nowrap" id="batchLabel">0/0</span>
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div id="questionCard" class="card fade-in" style="display:none">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+            <span class="tag tag-pri" id="qGrade"></span>
+            <span class="tag tag-ok" id="qPoint"></span>
+            <span class="tag" id="qDiffTag"></span>
+            <span style="font-size:11px;color:var(--sub);margin-left:auto" id="qType"></span>
+          </div>
+          <div class="q-stem" id="qStem"></div>
+          <div id="qOptions" style="display:flex;flex-direction:column;gap:0;margin:14px 0"></div>
+          <div id="qFill" style="display:none;margin:14px 0">
+            <input type="text" id="fillInput" class="input" placeholder="输入你的答案，按 Enter 提交..." onkeydown="if(event.key==='Enter')submitAnswer()">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px">
+            <button id="btnSubmit" class="btn btn-pri btn-lg" onclick="submitAnswer()" style="flex-shrink:0">✓ 提交答案</button>
+            <button class="btn btn-out" onclick="skipQuestion()">↪ 换一题</button>
+            <button class="btn btn-ghost btn-sm" onclick="showHint()">💡 提示</button>
+          </div>
+          <div id="qResult" style="display:none"></div>
+        </div>
+      </section>
+
+      <!-- Error Notebook -->
+      <section id="errorArea" class="card" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="font-size:15px;font-weight:700;margin:0">📝 错题本 <span style="font-size:11px;color:var(--sub);font-weight:400" id="errCount"></span></h3>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-warn btn-sm" onclick="exportPDF()">📄 PDF</button>
+            <button class="btn btn-out btn-sm" onclick="exportErrors()">TXT</button>
+            <button class="btn btn-err btn-sm" onclick="clearErrors()">清空</button>
+          </div>
+        </div>
+        <div id="errorList" style="display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto"></div>
+      </section>
     </div>
-    <div id="errorList" style="display:flex;flex-direction:column;gap:10px;max-height:400px;overflow-y:auto"></div>
+
+    <!-- RIGHT: Sidebar -->
+    <aside id="sidebar" style="display:flex;flex-direction:column;gap:14px">
+      <!-- Stats card -->
+      <div class="card" style="padding:14px 16px">
+        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.05em">📊 学习统计</h4>
+        <div class="stat-mini"><span>总题数</span><span class="stat-val" style="color:#165DFF" id="sTotal">0</span></div>
+        <div class="stat-mini"><span>✅ 正确</span><span class="stat-val" style="color:#36D399" id="sCorrect">0</span></div>
+        <div class="stat-mini"><span>❌ 错误</span><span class="stat-val" style="color:#F43F5E" id="sWrong">0</span></div>
+        <div class="stat-mini"><span>正确率</span><span class="stat-val" style="color:#F97316" id="sRate">0%</span></div>
+        <div class="stat-mini"><span>错题本</span><span class="stat-val" id="sErrors">0道</span></div>
+        <div class="stat-mini"><span>去重库</span><span class="stat-val" style="color:var(--sub);font-size:12px" id="sDedup">0条</span></div>
+      </div>
+
+      <!-- Current knowledge point detail -->
+      <div class="card" style="padding:14px 16px" id="sidebarKpCard">
+        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;color:var(--sub);text-transform:uppercase;letter-spacing:0.05em">🎯 当前考点</h4>
+        <div id="sidebarKpDetail" style="font-size:12px;color:var(--sub)">请选择知识点</div>
+      </div>
+
+      <!-- Batch info (compact) -->
+      <div class="card" style="padding:14px 16px" id="sidebarBatch" style="display:none">
+        <h4 style="font-size:13px;font-weight:700;margin:0 0 10px;color:var(--sub)">⚙️ 生成设置</h4>
+        <div style="font-size:12px;color:var(--sub)">
+          <div style="display:flex;justify-content:space-between;padding:2px 0"><span>AI模型</span><span id="sModel">-</span></div>
+          <div style="display:flex;justify-content:space-between;padding:2px 0"><span>批次大小</span><span id="sBatch">-</span></div>
+          <div style="display:flex;justify-content:space-between;padding:2px 0"><span>刷题模式</span><span id="sMode">-</span></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Onboarding (shown as overlay when no grade/goal selected) -->
+  <section id="onboarding" class="card fade-in" style="max-width:500px;margin:40px auto;text-align:center">
+    <div style="margin-bottom:16px">
+      <div style="width:56px;height:56px;background:#E8F0FF;border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:24px">🎯</div>
+      <h2 style="font-size:18px;font-weight:700;margin:0 0 2px">开始刷题</h2>
+      <p style="font-size:12px;color:var(--sub);margin:0">选择年级和目标，智能出题</p>
+    </div>
+    <div id="gradeSelGroup" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px"></div>
+    <div id="goalSelGroup" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:14px"></div>
+    <button class="btn btn-pri btn-lg" style="width:100%;justify-content:center" id="btnStart" onclick="startPractice()" disabled>开始刷题 →</button>
   </section>
 
 </main>
 
 <!-- Settings Modal -->
-<div id="settingsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:50;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeSettings()">
-  <div class="slide-up" style="background:#fff;border-radius:16px;padding:24px;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.12)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 style="font-size:18px;font-weight:700;margin:0">⚙️ 设置</h3>
-      <button onclick="closeSettings()" class="btn btn-ghost" style="font-size:18px;padding:4px 8px">✕</button>
+<div id="settingsOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:55;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)closeSettings()">
+  <div class="slide-up" style="background:var(--card-bg);border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 16px 48px rgba(0,0,0,0.15)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h3 style="font-size:17px;font-weight:700;margin:0">⚙️ 设置</h3>
+      <button onclick="closeSettings()" class="btn btn-ghost" style="font-size:16px;padding:4px 8px">✕</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:12px">
       <div>
-        <label style="font-size:13px;font-weight:500;color:#555;display:block;margin-bottom:4px">AI 提供商</label>
+        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">AI 提供商</label>
         <select id="setProvider" class="input" onchange="onProviderChange()">
           <option value="deepseek">🔵 DeepSeek（默认）</option>
           <option value="openai">🟢 OpenAI</option>
@@ -215,27 +305,27 @@ MathJax = {
         </select>
       </div>
       <div>
-        <label style="font-size:13px;font-weight:500;color:#555;display:block;margin-bottom:4px">模型</label>
+        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">模型</label>
         <select id="setModel" class="input"></select>
       </div>
       <div>
-        <label style="font-size:13px;font-weight:500;color:#555;display:block;margin-bottom:4px">API Key</label>
+        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">API Key</label>
         <input type="password" id="setApiKey" class="input" placeholder="输入对应厂商的 API Key...">
-        <div style="font-size:11px;color:#999;margin-top:4px" id="apiKeyHint"></div>
+        <div style="font-size:10px;color:#999;margin-top:3px" id="apiKeyHint"></div>
       </div>
       <div id="setBaseUrlGroup">
-        <label style="font-size:13px;font-weight:500;color:#555;display:block;margin-bottom:4px">API Base URL</label>
+        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">API Base URL</label>
         <input type="text" id="setBaseUrl" class="input" placeholder="自动填充默认地址">
       </div>
       <div>
-        <label style="font-size:13px;font-weight:500;color:#555;display:block;margin-bottom:4px">Supabase 表名</label>
+        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">Supabase 表名</label>
         <input type="text" id="setTable" class="input" value="questions">
       </div>
       <div>
-        <label style="font-size:13px;font-weight:500;color:#555;display:block;margin-bottom:4px">单次生成题数（1-10）</label>
+        <label style="font-size:12px;font-weight:500;color:var(--sub);display:block;margin-bottom:3px">单次生成题数（1-10）</label>
         <input type="number" id="setBatch" class="input" min="1" max="10" value="3">
       </div>
-      <div style="display:flex;gap:8px;padding-top:8px">
+      <div style="display:flex;gap:8px;padding-top:6px">
         <button class="btn btn-pri" style="flex:1;justify-content:center" onclick="saveSettings()">保存设置</button>
         <button class="btn btn-ghost btn-sm" onclick="clearDedup()">清空去重</button>
       </div>
@@ -264,10 +354,9 @@ function initSB(){try{sb=window.supabase.createClient(SB_URL,SB_KEY);console.log
 let curGrade='',curGoal='',curPoint='',curChapter='';
 let curQ=null,isLoading=false,submitted=false;
 let batchQuestions=[],speedMode=true,batchSize=3;
-let selectedOpt=null,userFill='',fillIsCorrect=false;
-let dedupHistory={},consecDupCount=0,tplUsed={};
-let darkMode=false;
-let totalDedupCount=0;
+let selectedOpt=null,userFill='';
+let dedupHistory={},consecDupCount=0;
+let darkMode=false,totalDedupCount=0;
 
 // ==================== GRADE CONFIG ====================
 const GRADES={
@@ -319,8 +408,26 @@ function getStats(){try{return JSON.parse(localStorage.getItem('bjm_stats')||'{}
 function getErrors(){try{return JSON.parse(localStorage.getItem('bjm_errors')||'[]')}catch(e){return[]}}
 function findPt(id){for(const ch of TREE)for(const p of ch.pts)if(p.id===id)return p;return null}
 function getChName(cid){const ch=TREE.find(c=>c.id===cid);return ch?ch.name:''}
-function getPtName(pid){const p=findPt(pid);return p?p.name:''}
 function getSettings(){try{return JSON.parse(localStorage.getItem('bjm_settings')||'{}')}catch(e){return{}}}
+
+// ==================== LaTeX PRE-PROCESSING (fix enumerate/itemize/align errors) ====================
+function fixLatex(text){
+  if(!text)return'';
+  let t=text;
+  // Convert enumerate/itemize/description to array environments that MathJax understands
+  t=t.replace(/\\begin\{enumerate\*?\}(\s*\[.*?\])?/gi,'\\begin{array}{l}');
+  t=t.replace(/\\end\{enumerate\*?\}/gi,'\\end{array}');
+  t=t.replace(/\\begin\{itemize\*?\}/gi,'\\begin{array}{l}');
+  t=t.replace(/\\end\{itemize\*?\}/gi,'\\end{array}');
+  t=t.replace(/\\begin\{description\}/gi,'\\begin{array}{l}');
+  t=t.replace(/\\end\{description\}/gi,'\\end{array}');
+  // Replace \item (with optional [label]) with line break + indent
+  t=t.replace(/\\item(\[.*?\])?\s*/gi,'\\\\[4pt] \\qquad ');
+  // Fix common problematic LaTeX: \tag, \nonumber (strip for inline display)
+  t=t.replace(/\\tag\{.*?\}/g,'');
+  t=t.replace(/\\nonumber/g,'');
+  return t;
+}
 
 // ==================== MATHJAX RE-RENDER HELPER ====================
 async function reRenderMath(el){
@@ -329,23 +436,19 @@ async function reRenderMath(el){
   }
 }
 
-// ==================== DEDUP (permanent storage, 30-day auto-clean) ====================
+// ==================== DEDUP (permanent localStorage, 30-day auto-clean) ====================
 function getDedup(){try{return JSON.parse(localStorage.getItem('bjm_dedup')||'{}')}catch(e){return{}}}
 function cleanupOldDedup(){
-  const h=getDedup();
-  const cutoff=Date.now()-30*24*3600*1000;
-  let changed=false;
+  const h=getDedup();const cutoff=Date.now()-30*24*3600*1000;let changed=false;
   for(const k in h){
     const before=h[k].length;
     h[k]=h[k].filter(e=>e.date>cutoff);
-    if(h[k].length===0){delete h[k];changed=true}
-    else if(h[k].length!==before)changed=true;
+    if(h[k].length===0){delete h[k];changed=true}else if(h[k].length!==before)changed=true;
   }
   if(changed)localStorage.setItem('bjm_dedup',JSON.stringify(h));
   return h;
 }
 function saveDedup(){
-  // Auto-clean: if total records > 1000, remove oldest
   let total=0;for(const k in dedupHistory)total+=dedupHistory[k].length;
   if(total>1000){
     let all=[];for(const k in dedupHistory)for(const e of dedupHistory[k])all.push({k:k,e:e});
@@ -358,20 +461,23 @@ function saveDedup(){
   }
   totalDedupCount=total>1000?1000:total;
   localStorage.setItem('bjm_dedup',JSON.stringify(dedupHistory));
+  // Update sidebar
+  if($('sDedup'))$('sDedup').textContent=totalDedupCount+'条';
+  if($('quickDedupCount'))$('quickDedupCount').textContent='去重: '+totalDedupCount+'条';
 }
 function qHash(pid,txt,qt){
   if(!txt)return'';let s=txt||'';
-  let fm=(s.match(/\$[^\$]+\$/g)||[]).join('');
-  let st=s.replace(/\$[^\$]+\$/g,'FORMULA').replace(/\d+(\.\d+)?/g,'N').replace(/\s+/g,'').substring(0,80);
-  return pid+'|'+(qt||'')+'|'+st+'|'+fm;
+  let fm=(s.match(/\\[\(\[\{].*?\\[\)\]\}]/g)||[]).join(''); // Check for \( \) \[ \] too
+  let fm2=(s.match(/\$[^\$]+\$/g)||[]).join('');
+  let st=s.replace(/\$[^\$]+\$/g,'FORMULA').replace(/\\[\(\[].*?\\[\)\]]/g,'FORMULA').replace(/\d+(\.\d+)?/g,'N').replace(/\s+/g,'').substring(0,100);
+  return pid+'|'+(qt||'')+'|'+st+'|'+(fm+fm2);
 }
 function qFingerprint(txt){
   let s=txt||'';let lx=(s.match(/\$[^\$]+\$/g)||[]).join('');
   let cl=s.replace(/\$[^\$]+\$/g,'').replace(/[\d\s\.\,\;\:\!\?\(\)\-\+\=<>\[\]\{\}]/g,'');
-  return (lx+cl.substring(0,80)).replace(/\s/g,'');
+  return (lx+cl.substring(0,100)).replace(/\s/g,'');
 }
 function isDup(pid,txt,qt){
-  // Check ALL stored records (cleanup already removes >30 day old records)
   if(!pid||!txt)return false;const h=getDedup();const list=h[pid]||[];
   const hs=qHash(pid,txt,qt);if(!hs)return false;
   for(const e of list){if(e.hash===hs)return true}
@@ -392,16 +498,14 @@ function isDupInBatch(pid,txt,qt,existingBatch){
   return false;
 }
 function getRecentPreviews(limit){
-  // Collect recent question previews from ALL knowledge points for AI dedup
   const h=getDedup();let all=[];
-  for(const k in h)for(const e of h[k])if(e.preview)all.push({pid:k,preview:e.preview,date:e.date});
+  for(const k in h)for(const e of h[k])if(e.preview)all.push({preview:e.preview,date:e.date});
   all.sort((a,b)=>b.date-a.date);
   return all.slice(0,limit||20).map(x=>x.preview);
 }
 function addDedup(pid,txt,qt){
   if(!pid||!txt)return;const h=getDedup();if(!h[pid])h[pid]=[];
   const hs=qHash(pid,txt,qt);const fp=qFingerprint(txt);if(!hs)return;
-  // Don't add if exact hash already exists
   if(h[pid].some(e=>e.hash===hs))return;
   h[pid].push({hash:hs,fp:fp,date:Date.now(),preview:txt.substring(0,150)});
   if(h[pid].length>200)h[pid]=h[pid].slice(-200);
@@ -410,7 +514,7 @@ function addDedup(pid,txt,qt){
   dedupHistory=h;saveDedup();
 }
 function clearDedup(){
-  if(confirm('确定清空去重历史？（清空后可能生成重复题目）')){localStorage.removeItem('bjm_dedup');dedupHistory={};consecDupCount=0;totalDedupCount=0;toast('去重历史已清空')}
+  if(confirm('确定清空去重历史？（清空后可能生成重复题目）')){localStorage.removeItem('bjm_dedup');dedupHistory={};consecDupCount=0;totalDedupCount=0;saveDedup();toast('去重历史已清空')}
 }
 function levDist(a,b){
   if(!a||!b)return 0;const m=a.length,n=b.length;
@@ -420,24 +524,84 @@ function levDist(a,b){
   return dp[m][n];
 }
 
+// ==================== GRADE & GOAL SWITCHING ====================
+function renderGradePills(){
+  // Render onboarding grade buttons
+  $('gradeSelGroup').innerHTML=Object.entries(GRADES).map(([k,v])=>
+    `<button class="grade-pill${curGrade===k?' active':''}" onclick="selGrade('${k}')" id="obGrade_${k}">${v.icon} ${k}</button>`).join('');
+  // Update quick switch pills
+  for(const g of['高一','高二','高三']){
+    const el=$('gp_'+g);if(el){el.classList.toggle('active',curGrade===g)}
+  }
+}
+function selGrade(g){
+  curGrade=g;renderGradePills();curGoal='';
+  $('goalSelGroup').innerHTML=GRADES[g].goals.map(gl=>
+    `<button class="grade-pill" onclick="selGoal('${gl.id}')" id="obGoal_${gl.id}">${gl.label}<span style="font-size:10px;color:var(--sub);margin-left:3px">${gl.desc}</span></button>`).join('');
+  // Also update quick goal dropdown
+  const qgs=$('quickGoalSelect');
+  if(qgs)qgs.innerHTML=GRADES[g].goals.map(gl=>`<option value="${gl.id}">${gl.label} (${gl.desc})</option>`).join('');
+  updStart();
+}
+function selGoal(g){
+  curGoal=g;
+  // Update visual selection in onboarding
+  document.querySelectorAll('#goalSelGroup .grade-pill').forEach(b=>b.classList.remove('active'));
+  const el=$('obGoal_'+g);if(el)el.classList.add('active');
+  // Sync quick goal dropdown
+  const qgs=$('quickGoalSelect');if(qgs)qgs.value=g;
+  updStart();
+}
+function updStart(){$('btnStart').disabled=!(curGrade&&curGoal)}
+function quickSwitchGrade(g){
+  curGrade=g;localStorage.setItem('bjm_grade',g);
+  renderGradePills();
+  // Set a default goal for the grade if none selected
+  const defaultGoal=GRADES[g].goals[0];
+  curGoal=defaultGoal.id;localStorage.setItem('bjm_goal',curGoal);
+  const qgs=$('quickGoalSelect');
+  if(qgs){
+    qgs.innerHTML=GRADES[g].goals.map(gl=>`<option value="${gl.id}">${gl.label} (${gl.desc})</option>`).join('');
+    qgs.value=curGoal;
+  }
+  $('headerSub').textContent=getGoalDisp();
+  $('hdrGrade').textContent=GRADES[g].icon+' '+g;
+  renderTree();updPtStats();updSidebar();
+  toast('已切换至 '+g+' · '+defaultGoal.label);
+  // Trigger new question generation if a knowledge point is selected
+  if(curPoint)startGen();
+}
+function quickSwitchGoal(gid){
+  curGoal=gid;localStorage.setItem('bjm_goal',gid);
+  $('headerSub').textContent=getGoalDisp();
+  updSidebar();
+  if(curPoint)startGen();
+}
+function showGradeSwitch(){
+  // Toggle the quick switch visibility
+  const el=$('gradeQuickSwitch');
+  if(el.style.display==='none'){el.style.display='';el.classList.add('slide-up')}
+  else{el.style.display='none'}
+}
+function getGoalDisp(){
+  if(!curGrade||!curGoal)return'2026 北京卷';
+  const g=GRADES[curGrade];if(!g)return'2026 北京卷';
+  const gl=g.goals.find(x=>x.id===curGoal);
+  return gl?`${curGrade} · ${gl.label}`:'2026 北京卷';
+}
+
 // ==================== SETTINGS UI ====================
 function onProviderChange(){
-  const p=$('setProvider').value;
-  const cfg=PROVIDERS[p];
-  const m=$('setModel');
-  m.innerHTML=cfg.models.map(m=>`<option value="${m}">${m}</option>`).join('');
-  $('setBaseUrl').value=cfg.baseURL;
-  $('setBaseUrl').placeholder=cfg.baseURL;
+  const p=$('setProvider').value;const cfg=PROVIDERS[p];
+  const m=$('setModel');m.innerHTML=cfg.models.map(m=>`<option value="${m}">${m}</option>`).join('');
+  $('setBaseUrl').value=cfg.baseURL;$('setBaseUrl').placeholder=cfg.baseURL;
   $('apiKeyHint').textContent=cfg.keyHint||'';
   $('setBaseUrlGroup').style.display=(p==='ernie')?'none':'';
 }
 function showSettings(){
-  const s=getSettings();
-  const p=s.provider||'deepseek';
-  $('setProvider').value=p;
-  $('setApiKey').value=s.apiKey||'';
-  $('setBatch').value=s.batchSize||3;
-  $('setTable').value=s.table||'questions';
+  const s=getSettings();const p=s.provider||'deepseek';
+  $('setProvider').value=p;$('setApiKey').value=s.apiKey||'';
+  $('setBatch').value=s.batchSize||3;$('setTable').value=s.table||'questions';
   onProviderChange();
   if(s.model)$('setModel').value=s.model;
   if(s.baseUrl&&s.provider===p)$('setBaseUrl').value=s.baseUrl;
@@ -445,38 +609,29 @@ function showSettings(){
 }
 function closeSettings(){$('settingsOverlay').style.display='none'}
 function saveSettings(){
-  const p=$('setProvider').value;
-  const cfg=PROVIDERS[p];
+  const p=$('setProvider').value;const cfg=PROVIDERS[p];
   const s={
-    provider:p,
-    apiKey:$('setApiKey').value.trim(),
+    provider:p,apiKey:$('setApiKey').value.trim(),
     baseUrl:$('setBaseUrl').value.trim()||cfg.baseURL,
-    model:$('setModel').value,
-    batchSize:parseInt($('setBatch').value)||3,
+    model:$('setModel').value,batchSize:parseInt($('setBatch').value)||3,
     table:$('setTable').value||'questions'
   };
-  // Save per-provider key
   if(s.apiKey)localStorage.setItem('bjm_apikey_'+p,s.apiKey);
   else s.apiKey=localStorage.getItem('bjm_apikey_'+p)||'';
   if(!s.apiKey)localStorage.setItem('bjm_apikey_'+p,'');
   localStorage.setItem('bjm_settings',JSON.stringify(s));
   batchSize=s.batchSize;
-  closeSettings();
-  toast('设置已保存 ✓');
+  closeSettings();toast('设置已保存 ✓');updSidebar();
 }
 
 // ==================== API CALL (multi-provider, 90s timeout) ====================
 async function callAI(sys,usr,timeoutMs=90000){
-  const s=getSettings();
-  const p=s.provider||'deepseek';
-  const cfg=PROVIDERS[p];
+  const s=getSettings();const p=s.provider||'deepseek';const cfg=PROVIDERS[p];
   let apiKey=s.apiKey||localStorage.getItem('bjm_apikey_'+p)||'';
   if(!apiKey){toast('请先在设置中配置 '+cfg.name+' 的 API Key');return null}
-  const model=s.model||cfg.models[0];
-  const baseUrl=s.baseUrl||cfg.baseURL;
+  const model=s.model||cfg.models[0];const baseUrl=s.baseUrl||cfg.baseURL;
   const controller=new AbortController();
   const timeout=setTimeout(()=>controller.abort(),timeoutMs);
-
   try{
     if(cfg.apiType==='claude'){
       const r=await fetch(baseUrl+'/v1/messages',{
@@ -500,7 +655,6 @@ async function callAI(sys,usr,timeoutMs=90000){
       if(d.choices&&d.choices[0])return d.choices[0].message.content;
       throw new Error('ERNIE: unexpected response format');
     }else{
-      // OpenAI-compatible: deepseek, openai, qwen, doubao
       const url=baseUrl+'/chat/completions';
       const r=await fetch(url,{
         method:'POST',signal:controller.signal,
@@ -515,7 +669,7 @@ async function callAI(sys,usr,timeoutMs=90000){
     }
   }catch(e){
     clearTimeout(timeout);
-    if(e.name==='AbortError')throw new Error('请求超时（90秒），请尝试更换模型或减少生成数量');
+    if(e.name==='AbortError')throw new Error('请求超时（90秒），请尝试更换模型');
     throw e;
   }
 }
@@ -525,28 +679,18 @@ async function fetchRefQuestions(pid,grade,diff){
   if(!sb)return[];
   try{
     const tbl=$('setTable').value||'questions';
-    // Collect all knowledge point names for cross-topic diversity
-    const allPtNames=[];
-    for(const ch of TREE)for(const p of ch.pts)allPtNames.push(p.name);
+    const allPtNames=[];for(const ch of TREE)for(const p of ch.pts)allPtNames.push(p.name);
     const shuffled=allPtNames.sort(()=>Math.random()-0.5);
-    // Pick 4 diverse knowledge points (including the current one)
-    const diverse=[];
-    const pt=findPt(pid);
-    if(pt)shuffled.unshift(pt.name); // Ensure current point is included
+    const diverse=[];const pt=findPt(pid);
+    if(pt)shuffled.unshift(pt.name);
     for(const n of shuffled){if(!diverse.includes(n))diverse.push(n);if(diverse.length>=4)break}
-
     const queries=[
       sb.from(tbl).select('*').like('考点','%'+diverse[0].substring(0,3)+'%').limit(7),
       sb.from(tbl).select('*').like('考点','%'+diverse[1].substring(0,3)+'%').limit(5),
       sb.from(tbl).select('*').order('id',{ascending:false}).limit(5),
     ];
-    if(diverse[2]){
-      queries.push(sb.from(tbl).select('*').like('考点','%'+diverse[2].substring(0,3)+'%').limit(4));
-    }
-    if(diverse[3]){
-      queries.push(sb.from(tbl).select('*').like('考点','%'+diverse[3].substring(0,3)+'%').limit(4));
-    }
-
+    if(diverse[2])queries.push(sb.from(tbl).select('*').like('考点','%'+diverse[2].substring(0,3)+'%').limit(4));
+    if(diverse[3])queries.push(sb.from(tbl).select('*').like('考点','%'+diverse[3].substring(0,3)+'%').limit(4));
     const results=await Promise.allSettled(queries);
     let refs=[];
     for(const r of results){
@@ -554,13 +698,7 @@ async function fetchRefQuestions(pid,grade,diff){
         for(const row of r.value.data){
           const qText=row['题干']||row['stem']||'';
           if(qText&&qText.length>20&&!refs.some(x=>x.question===qText)){
-            refs.push({
-              question:qText.substring(0,300),
-              answer:row['答案']||row['answer']||'',
-              type:row['题型']||row['type']||'',
-              pointName:row['考点']||row['pointName']||'',
-              difficulty:row['难度']||row['difficulty']||''
-            });
+            refs.push({question:qText.substring(0,300),answer:row['答案']||row['answer']||'',type:row['题型']||row['type']||'',pointName:row['考点']||row['pointName']||'',difficulty:row['难度']||row['difficulty']||''});
           }
         }
       }
@@ -584,27 +722,23 @@ function buildSys(){
 5. 如果无法保证原创，宁可拒绝出题也不能重复
 
 命题铁律：不可超纲、不可偏题怪题、必须符合北京高考命题规范。
+注意：题目中如需使用列举结构，请直接使用\text{(1)}...\text{(2)}...格式，避免使用LaTeX的enumerate环境。
+所有数学公式用$...$（行内）或$$...$$（独立行）包裹。可使用align、aligned、cases等标准数学环境。
 
-输出前请自我验证：
-1) 答案计算是否正确（逐步骤核对）
-2) 解析推导是否完整无跳跃
-3) 难度是否与要求的等级匹配
-4) 本题是否完全独立原创，与参考题/历史题无任何雷同
+输出前请自我验证：1)答案计算是否正确 2)解析推导是否完整 3)难度是否匹配 4)是否完全原创。
 
 输出严格JSON（禁止markdown包裹）：
-{"question":"完整题干（LaTeX用$...$）","type":"单选/多选/填空/解答题","options":["A．...","B．..."...]或null,"answer":"正确答案","explanation":"详细解题过程（含步骤推导）","difficulty":"易/中/难","pointName":"最细考点名称","selfCheck":"已通过自我验证（含原创性确认）"}`;
+{"question":"完整题干","type":"单选/多选/填空/解答题","options":["A．...","B．..."...]或null,"answer":"正确答案","explanation":"详细解题过程","difficulty":"易/中/难","pointName":"最细考点名称","selfCheck":"已通过自我验证（含原创性确认）"}`;
 }
 
 function buildUsr(pid,grade,diff,refs){
   const pt=findPt(pid);const pn=pt?pt.name:pid;
   const ch=pt?(TREE.find(c=>c.pts.includes(pt))||{}).name||'':'';
-  // Get recent question previews from ALL knowledge points (not just current)
   const recentPreviews=getRecentPreviews(20);
   let recentBlock='';
   if(recentPreviews.length>0){
     recentBlock='\n⚠️ 最近已生成的全部题目（严禁与其重复或高度相似，必须完全避开）：\n'+recentPreviews.map((p,i)=>`[${i+1}] ${p}`).join('\n');
   }
-  // Format reference questions
   let refText='';
   if(refs&&refs.length>0){
     const sampled=refs.sort(()=>Math.random()-0.5).slice(0,10);
@@ -612,94 +746,52 @@ function buildUsr(pid,grade,diff,refs){
   }
   const types=['单选','单选','填空','解答题','单选','填空','解答题','单选','单选','解答题'];
   const assignedType=types[Math.floor(Math.random()*types.length)];
-
   return `请生成一道北京${grade}数学题。
 考点：${pn} | 章节：${ch} | 难度：${diff} | 建议题型：${assignedType}
 ${recentBlock}
 ${refText}
-
 硬性要求：
 1. ★ 必须100%全新原创，严禁与以上任何题目相同或高度相似
 2. ★ 参考题仅用于了解北京卷风格和考点深度，严禁改编或模仿其具体内容
 3. ★ 请仔细核对已生成题目列表，如果可能重复，请主动换一个命题角度
-4. LaTeX用$...$格式，解答题可含(1)(2)小问
-5. 请先自我验证答案，确认无误后再输出JSON`;
+4. 题干中如有列举子问题请用\\text{(1)}...\\text{(2)}...格式，不要用\\begin{enumerate}
+5. 所有数学公式用$...$（行内）或$$...$$（独立行）包裹，可使用align,aligned,cases等环境
+6. 请先自我验证答案，确认无误后再输出JSON`;
 }
 
 async function genOne(pid,grade,diff,rt=0,existingBatch=[]){
   const pt=findPt(pid);if(!pt)return null;
   try{
-    // RAG: fetch diverse reference questions (first attempt only)
-    let refs=[];
-    if(sb&&rt===0)refs=await fetchRefQuestions(pid,grade,diff);
-
+    let refs=[];if(sb&&rt===0)refs=await fetchRefQuestions(pid,grade,diff);
     const raw=await callAI(buildSys(),buildUsr(pid,grade,diff,refs),90000);
     if(!raw){if(rt<2)return genOne(pid,grade,diff,rt+1,existingBatch);return null}
-
     let parsed=extractJSON(raw);
     if(!parsed){if(rt<2)return genOne(pid,grade,diff,rt+1,existingBatch);return null}
-
     const qt=parsed.type||'填空';const tx=parsed.question||'';
-
-    // Quality check: must have selfCheck verification
-    if(!parsed.selfCheck&&rt<1){
-      return genOne(pid,grade,diff,rt+1,existingBatch);
+    if(!parsed.selfCheck&&rt<1){return genOne(pid,grade,diff,rt+1,existingBatch)}
+    if(isDup(pid,tx,qt)){consecDupCount++;
+      if(rt<2){toast(`检测到重复，自动重试第${rt+1}次...`);return genOne(pid,grade,diff,rt+1,existingBatch)}
+      toast('⚠️ 连续重复，建议：1) 更换知识点 2) 切换AI模型 3) 清空去重历史');consecDupCount=0;return null;
     }
-
-    // Dedup check against ALL stored history (permanent)
-    if(isDup(pid,tx,qt)){
-      consecDupCount++;
-      console.warn('Dedup hit, retry '+(rt+1)+'/3');
-      if(rt<2){
-        toast(`检测到重复题目，自动重试第${rt+1}次...`);
-        return genOne(pid,grade,diff,rt+1,existingBatch);
-      }
-      // After 3 total attempts, give up
-      toast('⚠️ 连续生成重复题目，建议：1) 更换知识点 2) 切换到其他AI模型 3) 清空去重历史后重试');
-      consecDupCount=0;
-      return null;
-    }
-
-    // Dedup within batch (same knowledge + same type)
-    if(isDupInBatch(pid,tx,qt,existingBatch)){
-      if(rt<2){
-        toast(`检测到批次内重复，自动重试第${rt+1}次...`);
-        return genOne(pid,grade,diff,rt+1,existingBatch);
-      }
-      return null;
-    }
-
-    consecDupCount=0;
-    addDedup(pid,tx,qt);
-
-    return {
-      question:tx,type:qt,options:parsed.options||null,
-      answer:parsed.answer||'',explanation:parsed.explanation||'',
-      difficulty:parsed.difficulty||diff,pointName:parsed.pointName||pn,
-      _genType:qt,selfCheck:parsed.selfCheck||true
-    };
+    if(isDupInBatch(pid,tx,qt,existingBatch)){if(rt<2){toast(`批次内重复，重试第${rt+1}次...`);return genOne(pid,grade,diff,rt+1,existingBatch)}return null}
+    consecDupCount=0;addDedup(pid,tx,qt);
+    return {question:tx,type:qt,options:parsed.options||null,answer:parsed.answer||'',explanation:parsed.explanation||'',difficulty:parsed.difficulty||diff,pointName:parsed.pointName||pn,_genType:qt,selfCheck:parsed.selfCheck||true};
   }catch(e){
     console.error('Generate error:',e.message);
-    if(rt<2){
-      toast(`生成失败（${e.message.substring(0,60)}），自动重试...`);
-      return genOne(pid,grade,diff,rt+1,existingBatch);
-    }
-    toast(`题目生成多次失败（${e.message.substring(0,80)}），建议：1) 更换AI模型 2) 检查API Key 3) 切换知识点`);
-    return null;
+    if(rt<2){toast(`生成失败（${e.message.substring(0,60)}），自动重试...`);return genOne(pid,grade,diff,rt+1,existingBatch)}
+    toast(`题目生成失败（${e.message.substring(0,80)}），建议：1) 更换AI模型 2) 检查API Key 3) 切换知识点`);return null;
   }
 }
 
 async function genBatch(pid,count,grade,diff){
   const qs=[];
   $('loadingMsg').textContent='正在生成高质量题目，请稍候...';
-  $('loadingSub').textContent='从Supabase检索参考题 · 去重检查 · 质量验证 · 原创确认';
+  $('loadingSub').textContent='检索参考题 · 去重比对 · 原创验证 · 答案校验';
   for(let i=0;i<count;i++){
     updBatch(i,count,'loading');
     $('loadingMsg').textContent=`正在生成第 ${i+1}/${count} 题...`;
-    $('loadingSub').textContent='去重比对中 · 原创性验证 · 答案校验';
     const q=await genOne(pid,grade,diff,0,qs);
-    if(q){q._idx=i;q._status='ready';qs.push(q);updBatch(i+1,count,'done')}
-    else{updBatch(i,count,'failed')}
+    if(q){q._idx=i;q._status='ready';qs.push(q);updBatch(i+1,count,'done')}else{updBatch(i,count,'failed')}
   }
   return qs;
 }
@@ -711,41 +803,17 @@ function extractJSON(t){
   let m=t.match(/```(?:json)?\s*([\s\S]*?)```/);if(m){try{return JSON.parse(m[1])}catch(e){}}
   m=t.match(/\{[\s\S]*\}/);if(m){
     try{return JSON.parse(m[0])}catch(e){}
-    // Repair common issues
     let fixed=m[0];
-    try{
-      fixed=fixed.replace(/[\x00-\x1f]/g,' ').replace(/\t/g,' ');
-      return JSON.parse(fixed);
-    }catch(e2){}
+    try{fixed=fixed.replace(/[\x00-\x1f]/g,' ').replace(/\t/g,' ');return JSON.parse(fixed)}catch(e2){}
   }
   return null;
 }
 
 // ==================== ONBOARDING ====================
 function renderOnboarding(){
-  $('gradeSelector').innerHTML=Object.entries(GRADES).map(([k,v])=>
-    `<div class="card" style="cursor:pointer;text-align:center;padding:16px 12px" onclick="selGrade('${k}')" id="grade_${k}">
-      <div style="font-size:24px;margin-bottom:4px">${v.icon}</div>
-      <div style="font-weight:600;font-size:14px">${k}</div>
-      <div style="font-size:11px;color:#999;margin-top:2px">${v.desc}</div>
-    </div>`).join('');
+  $('gradeSelGroup').innerHTML=Object.entries(GRADES).map(([k,v])=>
+    `<button class="grade-pill" onclick="selGrade('${k}')" id="obGrade_${k}">${v.icon} ${k}</button>`).join('');
 }
-function selGrade(g){curGrade=g;
-  document.querySelectorAll('#gradeSelector .card').forEach(c=>c.style.boxShadow='');
-  const el=document.getElementById('grade_'+g);if(el)el.style.boxShadow='0 0 0 2px #165DFF';
-  $('goalSelector').innerHTML=GRADES[g].goals.map(gl=>
-    `<div class="card" style="cursor:pointer;text-align:center;padding:12px" onclick="selGoal('${gl.id}')" id="goal_${gl.id}">
-      <div style="font-weight:600;font-size:14px">${gl.label}</div>
-      <div style="font-size:11px;color:#999;margin-top:2px">${gl.desc}</div>
-    </div>`).join('');
-  curGoal='';updStart();
-}
-function selGoal(g){curGoal=g;
-  document.querySelectorAll('#goalSelector .card').forEach(c=>c.style.boxShadow='');
-  const el=document.getElementById('goal_'+g);if(el)el.style.boxShadow='0 0 0 2px #165DFF';
-  updStart();
-}
-function updStart(){$('btnStart').disabled=!(curGrade&&curGoal)}
 
 // ==================== KNOWLEDGE TREE ====================
 function renderChFilter(){
@@ -753,36 +821,58 @@ function renderChFilter(){
 }
 function renderTree(){
   const cf=$('chapterFilter').value;const chs=cf?TREE.filter(c=>c.id===cf):TREE;
-  let h='';for(const c of chs){h+=`<div style="font-weight:600;font-size:13px;color:#555;margin:10px 0 4px">${c.name}</div>`;
+  let h='';for(const c of chs){h+=`<div style="font-weight:600;font-size:12px;color:var(--sub);margin:10px 0 3px">${c.name}</div>`;
     for(const p of c.pts){const act=curPoint===p.id;const st=getStats()[p.id]||{total:0,correct:0};const rt=st.total>0?Math.round(100*st.correct/st.total):null;
       h+=`<div class="kp-item${act?' active':''}" onclick="selPoint('${p.id}')">
         <div class="dot ${act?'dot-on':'dot-off'}"></div><span style="flex:1">${p.name}</span>
-        ${rt!==null?`<span class="tag ${rt>=80?'tag-ok':rt>=60?'tag-warn':'tag-pri'}">${rt}%</span>`:''}
-        <span style="font-size:11px;color:#ccc">${st.total||0}题</span></div>`;}}
+        ${rt!==null?`<span class="tag ${rt>=80?'tag-ok':rt>=60?'tag-warn':'tag-pri'}" style="font-size:10px">${rt}%</span>`:''}
+        <span style="font-size:10px;color:#ccc">${st.total||0}题</span></div>`;}}
   $('knowledgeTree').innerHTML=h;
 }
 function selPoint(pid){curPoint=pid;const pt=findPt(pid);
   if(pt){for(const c of TREE)for(const p of c.pts)if(p.id===pid){curChapter=c.id;break}}
-  renderTree();updPtStats();startGen();
+  renderTree();updPtStats();updSidebar();startGen();
 }
 function updPtStats(){
   const pt=findPt(curPoint);if(!pt)return;
   const st=getStats()[curPoint]||{total:0,correct:0};
   const dl=(getDedup()[curPoint]||[]);const c=Date.now()-30*24*3600*1000;
   const rc=dl.filter(e=>e.date>c).length;
-  $('pointStats').innerHTML=`已做 <b>${st.total}</b> 题 | 正确率 <b>${st.total>0?Math.round(100*st.correct/st.total):0}%</b> | 近30天不重复生成 <b>${rc}</b> 道 | 去重库 <b>${totalDedupCount||0}</b> 条`;
+  $('pointStats').innerHTML=`已做 <b>${st.total}</b> 题 | 正确率 <b>${st.total>0?Math.round(100*st.correct/st.total):0}%</b> | 近30天不重复 <b>${rc}</b> 道`;
+  // Update sidebar KP detail
+  $('sidebarKpDetail').innerHTML=`<div style="font-weight:600;font-size:14px;color:#165DFF;margin-bottom:4px">${pt.name}</div>
+    <div>章节：${getChName(curChapter)}</div><div>难度：${pt.diff==='easy'?'基础':pt.diff==='medium'?'中档':'难题'}</div>
+    <div>已做：${st.total}题 | 正确率：${st.total>0?Math.round(100*st.correct/st.total):0}%</div>`;
+}
+
+// ==================== SIDEBAR ====================
+function updSidebar(){
+  const s=getSettings();
+  $('sModel').textContent=(PROVIDERS[s.provider||'deepseek']||{}).name||'DeepSeek';
+  $('sBatch').textContent=batchSize+'题/次';
+  $('sMode').textContent=speedMode?'快速刷题':'精练模式';
+  // Stats
+  const st=getStats();let t=0,c2=0;
+  for(const k in st){t+=st[k].total||0;c2+=st[k].correct||0}
+  $('sTotal').textContent=t;$('sCorrect').textContent=c2;$('sWrong').textContent=t-c2;
+  $('sRate').textContent=t>0?Math.round(100*c2/t)+'%':'0%';
+  $('sErrors').textContent=getErrors().length+'道';
+  $('sDedup').textContent=totalDedupCount+'条';
+  // Header compact stats
+  $('hdrTotal').textContent=t+'题';
+  $('hdrRate').textContent=t>0?Math.round(100*c2/t)+'%':'--';
+  $('hdrGrade').textContent=curGrade?GRADES[curGrade].icon+' '+curGrade:'选择年级';
 }
 
 // ==================== QUESTION DISPLAY ====================
-function updBatch(d,t,s){if(batchSize>1){$('batchProgress').style.display='';$('batchBar').style.width=(100*d/t)+'%';$('batchLabel').textContent=`${d}/${t}`;
-  let h='';for(let i=0;i<t;i++)h+=`<div style="width:8px;height:8px;border-radius:50%;background:${i<d?s==='failed'&&i===d-1?'#F43F5E':'#36D399':'#e5e5e5'}"></div>`;$('batchDots').innerHTML=h}else{$('batchProgress').style.display='none'}}
+function updBatch(d,t,s){if(batchSize>1){$('batchProgress').style.display='';$('batchBar').style.width=(100*d/t)+'%';$('batchLabel').textContent=`${d}/${t}`}else{$('batchProgress').style.display='none'}}
 
 async function startGen(){
-  if(!curPoint||isLoading)return;isLoading=true;submitted=false;selectedOpt=null;userFill='';fillIsCorrect=false;
+  if(!curPoint||isLoading)return;isLoading=true;submitted=false;selectedOpt=null;userFill='';
   $('questionCard').style.display='none';$('loadingCard').style.display='';$('questionArea').style.display='';
   $('qResult').style.display='none';$('batchProgress').style.display='none';
   $('loadingMsg').textContent='正在生成高质量题目，请稍候...';
-  $('loadingSub').textContent='从Supabase检索参考题 · 去重检查 · 质量验证 · 原创确认';
+  $('loadingSub').textContent='检索参考题 · 去重比对 · 原创验证 · 答案校验';
   const grade=curGrade||'高三';const pt=findPt(curPoint);const diff=pt?pt.diff:'medium';
   try{
     batchQuestions=await genBatch(curPoint,batchSize,grade,diff);
@@ -790,22 +880,30 @@ async function startGen(){
       curQ=batchQuestions[0];
       for(let i=1;i<batchQuestions.length;i++)addDedup(curPoint,batchQuestions[i].question,batchQuestions[i].type);
       renderQ();
-    }else{
-      toast('生成失败，请检查 API 配置或更换知识点/模型重试');
-    }
+    }else{toast('生成失败，请检查 API 配置或更换知识点/模型重试')}
   }catch(e){console.error(e);toast('生成出错：'+e.message)}
-  $('loadingCard').style.display='none';isLoading=false;
+  $('loadingCard').style.display='none';isLoading=false;updSidebar();
 }
+
 function renderQ(){
   if(!curQ)return;$('questionCard').style.display='';$('questionCard').classList.add('fade-in');
-  $('qResult').style.display='none';$('qResult').innerHTML='';$('btnSubmit').disabled=false;$('btnSubmit').textContent='✓ 提交答案';$('btnSubmit').className='btn btn-pri';
+  $('qResult').style.display='none';$('qResult').innerHTML='';
+  $('btnSubmit').disabled=false;$('btnSubmit').textContent='✓ 提交答案';$('btnSubmit').className='btn btn-pri btn-lg';
   submitted=false;selectedOpt=null;userFill='';const pt=findPt(curPoint);
-  $('qGrade').textContent=curGrade||'高三';$('qPoint').textContent=curQ.pointName||(pt?pt.name:'');$('qDiff').textContent=curQ.difficulty||'中';$('qType').textContent='['+(curQ.type||'未知')+']';
-  $('qStem').innerHTML=curQ.question;
-  if(curQ.options&&Array.isArray(curQ.options)&&curQ.options.length>=2){$('qOptions').style.display='';$('qFill').style.display='none';
-    $('qOptions').innerHTML=curQ.options.map((o,i)=>`<div class="option-card" onclick="selOpt(${i})" id="opt_${i}"><div class="opt-circle" id="optc_${i}">${String.fromCharCode(65+i)}</div><span>${o.replace(/^[A-D][．.、\s]+/,'')}</span></div>`).join('')}
-  else{$('qOptions').style.display='none';$('qFill').style.display='';$('fillInput').value='';$('fillInput').focus()}
-  // Force re-render MathJax on the entire question card
+  $('qGrade').textContent=curGrade||'高三';
+  $('qPoint').textContent=curQ.pointName||(pt?pt.name:'');
+  // Difficulty tag with color
+  const dt=curQ.difficulty||'中';
+  const dtMap={易:'tag-easy',中:'tag-mid',难:'tag-hard'};
+  $('qDiffTag').textContent=dt;$('qDiffTag').className='tag '+(dtMap[dt]||'tag-warn');
+  $('qType').textContent='['+(curQ.type||'未知')+']';
+  // Apply LaTeX fix before setting innerHTML
+  $('qStem').innerHTML=fixLatex(curQ.question);
+  if(curQ.options&&Array.isArray(curQ.options)&&curQ.options.length>=2){
+    $('qOptions').style.display='';$('qFill').style.display='none';
+    $('qOptions').innerHTML=curQ.options.map((o,i)=>
+      `<div class="option-card" onclick="selOpt(${i})" id="opt_${i}"><div class="opt-circle" id="optc_${i}">${String.fromCharCode(65+i)}</div><span style="font-size:15px;line-height:1.7;flex:1">${fixLatex(o.replace(/^[A-D][．.、\s]+/,''))}</span></div>`).join('')
+  }else{$('qOptions').style.display='none';$('qFill').style.display='';$('fillInput').value='';$('fillInput').focus()}
   reRenderMath($('questionCard'));
 }
 function selOpt(i){if(submitted)return;selectedOpt=i;
@@ -816,19 +914,27 @@ function selOpt(i){if(submitted)return;selectedOpt=i;
 async function submitAnswer(){
   if(submitted||!curQ)return;submitted=true;$('btnSubmit').disabled=true;
   let ua='',ok=false;
-  if(curQ.options&&Array.isArray(curQ.options)&&curQ.options.length>=2){if(selectedOpt===null){toast('请选择一个选项');submitted=false;$('btnSubmit').disabled=false;return}ua=String.fromCharCode(65+selectedOpt)}
-  else{userFill=$('fillInput').value.trim();if(!userFill){toast('请输入答案');submitted=false;$('btnSubmit').disabled=false;return}ua=userFill}
+  if(curQ.options&&Array.isArray(curQ.options)&&curQ.options.length>=2){
+    if(selectedOpt===null){toast('请选择一个选项');submitted=false;$('btnSubmit').disabled=false;return}
+    ua=String.fromCharCode(65+selectedOpt);
+  }else{userFill=$('fillInput').value.trim();if(!userFill){toast('请输入答案');submitted=false;$('btnSubmit').disabled=false;return}ua=userFill}
   const ca=Array.isArray(curQ.answer)?curQ.answer.join(','):(curQ.answer||'');ok=chkAns(ua,ca);
   saveRec(ok);
-  const r=$('qResult');r.style.display='';r.innerHTML=`<div class="result-box ${ok?'result-ok':'result-err'} slide-up">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:24px">${ok?'✅':'❌'}</span><span style="font-weight:700;color:${ok?'#166534':'#991b1b'}">${ok?'回答正确！':'回答错误'}</span></div>
-    <div style="font-size:14px"><b>正确答案：</b>${ca}</div>${ua!==ca?`<div style="font-size:13px;color:#999;margin-top:2px">你的答案：${ua}</div>`:''}
-    ${curQ.explanation?`<div style="margin-top:12px;padding:12px;background:#fff;border-radius:8px;font-size:13px;line-height:1.7"><b>解析：</b><br>${curQ.explanation}</div>`:''}
+  const r=$('qResult');r.style.display='';
+  r.innerHTML=`<div class="result-box ${ok?'result-ok':'result-err'} slide-up">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:22px">${ok?'✅':'❌'}</span><span style="font-weight:700;color:${ok?'#166534':'#991b1b'}">${ok?'回答正确！':'回答错误'}</span></div>
+    <div style="font-size:14px"><b>正确答案：</b>${ca}</div>${ua!==ca?`<div style="font-size:13px;color:var(--sub);margin-top:2px">你的答案：${ua}</div>`:''}
+    ${curQ.explanation?`<div style="margin-top:12px;padding:12px;background:var(--card-bg);border-radius:8px;font-size:13px;line-height:1.8"><b>解析：</b><br>${fixLatex(curQ.explanation)}</div>`:''}
     <div style="display:flex;gap:8px;margin-top:12px"><button class="btn btn-pri" onclick="nextQ()">下一题 →</button><button class="btn btn-err btn-sm" onclick="addErr()">📝 加入错题本</button></div></div>`;
   reRenderMath(r);
   updStats();updErrList();if(!ok)addErr();
 }
-function chkAns(u,c){if(!u||!c)return false;const ua=u.trim().toUpperCase(),ca=c.trim().toUpperCase();if(ua===ca)return true;if(ca.includes(ua)&&ua.length>=2)return true;const un=parseFloat(ua),cn=parseFloat(ca);if(!isNaN(un)&&!isNaN(cn)&&Math.abs(un-cn)/Math.max(1,Math.abs(cn))<0.01)return true;return false}
+function chkAns(u,c){
+  if(!u||!c)return false;const ua=u.trim().toUpperCase(),ca=c.trim().toUpperCase();
+  if(ua===ca)return true;if(ca.includes(ua)&&ua.length>=2)return true;
+  const un=parseFloat(ua),cn=parseFloat(ca);if(!isNaN(un)&&!isNaN(cn)&&Math.abs(un-cn)/Math.max(1,Math.abs(cn))<0.01)return true;
+  return false;
+}
 function saveRec(ok){const s=getStats();const k=curPoint||curChapter;if(!k)return;if(!s[k])s[k]={total:0,correct:0};s[k].total++;if(ok)s[k].correct++;localStorage.setItem('bjm_stats',JSON.stringify(s))}
 function nextQ(){const i=batchQuestions.indexOf(curQ);if(i>=0&&i<batchQuestions.length-1){curQ=batchQuestions[i+1];submitted=false;selectedOpt=null;userFill='';renderQ()}else startGen()}
 function skipQuestion(){if(batchQuestions.length>1)nextQ();else startGen()}
@@ -837,162 +943,156 @@ function showHint(){if(!curQ)return;const h=curQ.explanation?curQ.explanation.sp
 // ==================== ERROR NOTEBOOK ====================
 function addErr(){if(!curQ)return;const es=getErrors();if(es.some(e=>e.question===curQ.question))return;const pt=findPt(curPoint);
   es.push({id:Date.now(),chapterId:curChapter,pointId:curPoint,chapterName:getChName(curChapter),pointName:pt?pt.name:'',question:curQ.question,options:curQ.options,answer:curQ.answer,type:curQ.type,explanation:curQ.explanation||'',difficulty:curQ.difficulty||'中',userAnswer:selectedOpt!==null?String.fromCharCode(65+selectedOpt):userFill,date:new Date().toLocaleDateString('zh-CN')});
-  localStorage.setItem('bjm_errors',JSON.stringify(es));updErrList();}
+  localStorage.setItem('bjm_errors',JSON.stringify(es));updErrList();updSidebar();}
 function updErrList(){const es=getErrors();const a=$('errorArea');const l=$('errorList');$('errCount').textContent=`共 ${es.length} 道错题`;
   if(!es.length){a.style.display='none';return}a.style.display='';
-  l.innerHTML=es.slice(-20).reverse().map((e,i)=>`<div style="padding:12px;background:#f9fafb;border-radius:10px;font-size:13px">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap"><span class="tag tag-warn">${e.difficulty||'中'}</span><span class="tag tag-pri">${e.pointName||e.chapterName||''}</span><span style="font-size:11px;color:#999;margin-left:auto">${e.date}</span><button style="background:none;border:none;color:#F43F5E;cursor:pointer;font-size:11px" onclick="rmErr(${es.length-1-i})">删除</button></div>
-    <div style="line-height:1.6">${e.question.substring(0,150)}...</div>
-    ${e.userAnswer?`<div style="font-size:12px;color:#F43F5E;margin-top:2px">你的答案：${e.userAnswer}</div>`:''}
-    ${e.answer?`<div style="color:#36D399;font-weight:500;margin-top:2px">正确答案：${Array.isArray(e.answer)?e.answer.join(','):e.answer}</div>`:''}</div>`).join('');
-  // Re-render MathJax in error list
-  reRenderMath(l);
-}
-function rmErr(i){const es=getErrors();es.splice(i,1);localStorage.setItem('bjm_errors',JSON.stringify(es));updErrList()}
-function clearErrors(){if(confirm('确定清空所有错题？')){localStorage.removeItem('bjm_errors');updErrList();toast('错题本已清空')}}
+  l.innerHTML=es.slice(-20).reverse().map((e,i)=>`<div style="padding:10px 12px;background:var(--card-bg);border:1px solid var(--card-bd);border-radius:10px;font-size:12px">
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:3px;flex-wrap:wrap"><span class="tag tag-warn">${e.difficulty||'中'}</span><span class="tag tag-pri">${e.pointName||e.chapterName||''}</span><span style="font-size:10px;color:var(--sub);margin-left:auto">${e.date}</span><button style="background:none;border:none;color:#F43F5E;cursor:pointer;font-size:10px" onclick="rmErr(${es.length-1-i})">✕</button></div>
+    <div style="line-height:1.5">${fixLatex(e.question.substring(0,150))}...</div>
+    ${e.userAnswer?`<div style="font-size:11px;color:#F43F5E;margin-top:1px">你的答案：${e.userAnswer}</div>`:''}
+    ${e.answer?`<div style="color:#36D399;font-weight:500;margin-top:1px">正确答案：${Array.isArray(e.answer)?e.answer.join(','):e.answer}</div>`:''}</div>`).join('');
+  reRenderMath(l);}
+function rmErr(i){const es=getErrors();es.splice(i,1);localStorage.setItem('bjm_errors',JSON.stringify(es));updErrList();updSidebar()}
+function clearErrors(){if(confirm('确定清空所有错题？')){localStorage.removeItem('bjm_errors');updErrList();toast('错题本已清空');updSidebar()}}
 function exportErrors(){const es=getErrors();if(!es.length){toast('错题本为空');return}let t='北京高中数学错题本\n'+'='.repeat(40)+'\n\n';es.forEach((e,i)=>{t+=`【${i+1}】${e.pointName||''} | ${e.difficulty||''} | ${e.date}\n题目：${e.question.replace(/\$/g,'')}\n${e.options?'选项：'+e.options.join(' ')+'\n':''}答案：${Array.isArray(e.answer)?e.answer.join(','):e.answer}\n${e.explanation?'解析：'+e.explanation+'\n':''}\n---\n\n`});
   const a=document.createElement('a');const b=new Blob([t],{type:'text/plain;charset=utf-8'});a.href=URL.createObjectURL(b);a.download='北京数学错题本.txt';a.click();URL.revokeObjectURL(a.href);toast('错题本已导出')}
 
-// ==================== PDF EXPORT (MathJax 3 pre-render + html2pdf.js) ====================
+// ==================== PDF EXPORT (MathJax pre-render + html2pdf.js) ====================
 async function exportPDF(){
-  const es=getErrors();
-  if(!es.length){toast('错题本为空，无需导出');return}
-
-  // Show loading overlay
+  const es=getErrors();if(!es.length){toast('错题本为空，无需导出');return}
   const overlay=document.createElement('div');
   overlay.className='pdf-loading-overlay';
   overlay.innerHTML='<div class="spinner"></div><div class="text">正在渲染公式...</div>';
   document.body.appendChild(overlay);
-
   try{
-    // Build export HTML with styled cards
     let body='';
     es.forEach((e,i)=>{
-      const qText=e.question||'';
+      const qText=fixLatex(e.question||'');
       const ans=Array.isArray(e.answer)?e.answer.join(','):(e.answer||'');
-      const exp=e.explanation||'';
+      const exp=fixLatex(e.explanation||'');
       const diffLabel=e.difficulty==='easy'?'基础':(e.difficulty==='medium'?'中档':'难题');
       const userAns=e.userAnswer||'未作答';
-
-      body+=`<div style="border:1px solid #ddd;border-radius:10px;padding:16px;margin-bottom:16px;page-break-inside:avoid;background:#fff">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid #eee;padding-bottom:8px">
-          <span style="font-weight:700;color:#165DFF;font-size:14px">${i+1}. ${e.pointName||e.chapterName||''}</span>
-          <span style="font-size:11px;color:#999">${diffLabel} | ${e.date||''} | ${e.type||''}</span>
+      body+=`<div style="border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:14px;page-break-inside:avoid;background:#fff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:7px">
+          <span style="font-weight:700;color:#165DFF;font-size:13px">${i+1}. ${e.pointName||e.chapterName||''}</span>
+          <span style="font-size:10px;color:#999">${diffLabel} | ${e.date||''} | ${e.type||''}</span>
         </div>
         <div style="font-size:14px;line-height:1.9;margin-bottom:8px;color:#333">${qText}</div>
-        ${e.options?`<div style="font-size:13px;color:#666;margin-bottom:6px;padding:8px;background:#f9fafb;border-radius:6px">${Array.isArray(e.options)?e.options.join('<br>') :e.options}</div>`:''}
-        <div style="font-size:13px;color:#F43F5E;margin-bottom:3px"><b>你的作答：</b>${userAns}</div>
-        <div style="font-size:13px;color:#36D399;margin-bottom:3px"><b>正确答案：</b>${ans}</div>
-        ${exp?`<div style="font-size:12px;color:#666;line-height:1.8;margin-top:6px;padding:10px;background:#f0fdf6;border-radius:6px"><b>解析：</b><br>${exp}</div>`:''}
+        ${e.options?`<div style="font-size:12px;color:#666;margin-bottom:6px;padding:8px;background:#f9fafb;border-radius:6px">${Array.isArray(e.options)?e.options.map(o=>fixLatex(o)).join('<br>'):fixLatex(e.options)}</div>`:''}
+        <div style="font-size:12px;color:#F43F5E;margin-bottom:2px"><b>你的作答：</b>${userAns}</div>
+        <div style="font-size:12px;color:#36D399;margin-bottom:2px"><b>正确答案：</b>${ans}</div>
+        ${exp?`<div style="font-size:11px;color:#666;line-height:1.8;margin-top:6px;padding:10px;background:#f0fdf6;border-radius:6px"><b>解析：</b><br>${exp}</div>`:''}
       </div>`;
-      // Page break every 2 questions
       if((i+1)%2===0&&i<es.length-1)body+=`<div style="page-break-after:always"></div>`;
     });
-
-    const now=new Date();
-    const dateStr=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
-
+    const now=new Date();const dateStr=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
     const exportHTML=`<!DOCTYPE html>
 <html lang="zh-CN">
 <head><meta charset="UTF-8">
 <style>
-  @page{size:A4;margin:18mm}
-  body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;color:#333;line-height:1.6;font-size:13px}
-  .header{text-align:center;border-bottom:2px solid #165DFF;padding-bottom:12px;margin-bottom:24px}
-  .header h1{font-size:20px;color:#165DFF;margin:0}.header p{font-size:11px;color:#999;margin:4px 0 0}
+  @page{size:A4;margin:18mm}body{font-family:'Microsoft YaHei','PingFang SC',sans-serif;color:#333;line-height:1.6;font-size:12px}
+  .header{text-align:center;border-bottom:2px solid #165DFF;padding-bottom:10px;margin-bottom:20px}
+  .header h1{font-size:18px;color:#165DFF;margin:0}.header p{font-size:10px;color:#999;margin:3px 0 0}
   mjx-container{overflow-x:auto;max-width:100%}
 </style>
-<!-- MathJax for PDF rendering -->
-<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};<\/script>
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true,processEnvironments:true,packages:{'[+]':['base','ams','noerrors','noundefined']}},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}};<\/script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"><\/script>
 </head>
 <body>
   <div class="header"><h1>北京高中数学错题本</h1><p>导出日期：${now.toLocaleDateString('zh-CN')} | 共 ${es.length} 道错题 | 年级：${curGrade||'高三'}</p></div>
   ${body}
 </body></html>`;
-
-    // Create off-screen container for MathJax rendering
     const container=document.createElement('div');
     container.style.cssText='position:fixed;left:-9999px;top:0;width:800px;background:#fff;z-index:-1';
     container.innerHTML=exportHTML;
     document.body.appendChild(container);
-
-    // Wait for MathJax to fully render inside the container
-    overlay.querySelector('.text').textContent='正在渲染数学公式（可能需要几秒）...';
-
-    // Wait for the MathJax script inside the iframe-like div to load and render
-    // Since we inject the MathJax script tag, we need to give it time to load
-    await new Promise(r=>setTimeout(r,2000));
-
-    // Try to render via the main page's MathJax instance first
+    overlay.querySelector('.text').textContent='正在渲染数学公式...';
+    await new Promise(r=>setTimeout(r,2500));
     if(window.MathJax&&MathJax.typesetPromise){
-      try{
-        await MathJax.typesetPromise([container]);
-        console.log('MathJax rendered for PDF export');
-      }catch(e){console.warn('MathJax typeset on container failed:',e)}
+      try{await MathJax.typesetPromise([container]);console.log('PDF MathJax rendered')}catch(e){console.warn('PDF MathJax error:',e)}
     }
-
-    // Extra wait for complex formulas to finish rendering
     await new Promise(r=>setTimeout(r,1500));
-
-    // Use html2pdf.js with high-quality settings
     overlay.querySelector('.text').textContent='正在生成PDF文件...';
     if(window.html2pdf){
       await html2pdf().set({
-        margin:[18,18,18,18],
-        filename:`数学错题本_${dateStr}.pdf`,
+        margin:[18,18,18,18],filename:`数学错题本_${dateStr}.pdf`,
         image:{type:'jpeg',quality:0.98},
         html2canvas:{scale:2,useCORS:true,letterRendering:true,logging:false,allowTaint:true},
         jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
         pagebreak:{mode:['avoid-all','css','legacy']}
       }).from(container).save();
-      toast(`PDF已导出：共${es.length}道错题，公式经MathJax渲染`);
+      toast(`PDF已导出：共${es.length}道错题`);
     }else{
-      // Fallback: download as styled HTML
       const blob=new Blob([exportHTML],{type:'text/html;charset=utf-8'});
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download=`数学错题本_${dateStr}.html`;
-      a.click();URL.revokeObjectURL(a.href);
-      toast('html2pdf未加载，已导出HTML格式（可用浏览器打开后打印为PDF）');
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+      a.download=`数学错题本_${dateStr}.html`;a.click();URL.revokeObjectURL(a.href);
+      toast('html2pdf未加载，已导出HTML格式');
     }
-
     document.body.removeChild(container);
-  }catch(e){
-    console.error('PDF export error:',e);
-    toast('PDF导出失败：'+e.message);
-  }finally{
-    document.body.removeChild(overlay);
-  }
+  }catch(e){console.error('PDF export error:',e);toast('PDF导出失败：'+e.message)}
+  finally{document.body.removeChild(overlay)}
 }
 
 // ==================== STATS & DARK ====================
-function updStats(){const s=getStats();let t=0,c=0;for(const k in s){t+=s[k].total||0;c+=s[k].correct||0}$('statTotal').textContent=t;$('statCorrect').textContent=c;$('statWrong').textContent=t-c;$('statRate').textContent=t>0?Math.round(100*c/t)+'%':'0%';$('badgeCount').textContent=t+'题'}
-function toggleDark(){darkMode=!darkMode;const b=document.body;const is=darkMode;
-  b.style.background=is?'#1a1a2e':'#f8f9fb';b.style.color=is?'#e0e0e0':'#1a1a2e';
-  document.querySelectorAll('.card').forEach(c=>{c.style.background=is?'#16213e':'#fff';c.style.borderColor=is?'#2a3a5e':'#f0f0f0'});
-  document.querySelectorAll('.result-box').forEach(c=>{if(c.classList.contains('result-ok'))c.style.background=is?'#0a2a1a':'';else if(c.classList.contains('result-err'))c.style.background=is?'#2a0a0a':''});
-  $('btnDark').textContent=is?'☀️':'🌙';localStorage.setItem('bjm_dark',is?'1':'0');
-  if(is){document.querySelector('header').style.background='rgba(26,26,46,0.85)';document.querySelector('header').style.borderBottomColor='#2a3a5e'}
-  else{document.querySelector('header').style.background='rgba(255,255,255,0.85)';document.querySelector('header').style.borderBottomColor='#f0f0f0'}
+function updStats(){
+  const st=getStats();let t=0,c2=0;for(const k in st){t+=st[k].total||0;c2+=st[k].correct||0}
+  $('hdrTotal').textContent=t+'题';
+  $('hdrRate').textContent=t>0?Math.round(100*c2/t)+'%':'--';
+  updSidebar();
 }
-function switchMode(){speedMode=!speedMode;$('btnMode').textContent=speedMode?'⚡ 刷题模式':'📝 精练模式';toast(speedMode?'刷题模式（快速批处理）':'精练模式（逐题精讲）')}
+function toggleDark(){
+  darkMode=!darkMode;
+  document.body.classList.toggle('dark',darkMode);
+  $('btnDark').textContent=darkMode?'☀️':'🌙';
+  localStorage.setItem('bjm_dark',darkMode?'1':'0');
+}
+function switchMode(){speedMode=!speedMode;$('btnMode').textContent=speedMode?'⚡ 刷题':'📝 精练';toast(speedMode?'刷题模式（快速批处理）':'精练模式（逐题精讲）');updSidebar()}
 
 // ==================== INIT ====================
 function init(){
   initSB();
-  try{tplUsed=JSON.parse(localStorage.getItem('bjm_tpl_used')||'{}')}catch(e){tplUsed={}}
-  // Clean up old (>30 day) dedup records on startup
   dedupHistory=cleanupOldDedup();
   totalDedupCount=0;for(const k in dedupHistory)totalDedupCount+=dedupHistory[k].length;
-  if(localStorage.getItem('bjm_dark')==='1'){darkMode=false;toggleDark()}
-  renderOnboarding();renderChFilter();updStats();updErrList();
+  if(localStorage.getItem('bjm_dark')==='1'){darkMode=true;document.body.classList.add('dark');$('btnDark').textContent='☀️'}
+  renderOnboarding();renderChFilter();renderTree();updStats();updErrList();
   const sg=localStorage.getItem('bjm_grade');const so=localStorage.getItem('bjm_goal');const sp=localStorage.getItem('bjm_point');
-  if(sg&&so){curGrade=sg;curGoal=so;selGrade(sg);selGoal(so);$('onboarding').style.display='none';$('knowledgePanel').style.display='';$('statsBar').style.display='';$('headerSub').textContent=getGoalDisp();
-    if(sp){curPoint=sp;selPoint(sp)}}
+  if(sg&&so){
+    curGrade=sg;curGoal=so;
+    renderGradePills();
+    $('onboarding').style.display='none';
+    $('gradeQuickSwitch').style.display='';
+    $('mainGrid').style.display='';
+    $('knowledgePanel').style.display='';
+    $('hdrGrade').textContent=GRADES[sg]?GRADES[sg].icon+' '+sg:'选择年级';
+    $('headerSub').textContent=getGoalDisp();
+    // Fill quick goal dropdown
+    const qgs=$('quickGoalSelect');
+    if(qgs){
+      qgs.innerHTML=GRADES[sg].goals.map(gl=>`<option value="${gl.id}"${gl.id===so?' selected':''}>${gl.label} (${gl.desc})</option>`).join('');
+    }
+    if(sp){curPoint=sp;selPoint(sp)}
+    updStats();updPtStats();
+  }
+  // Ensure re-render after a short delay (MathJax may not be ready at DOMContentLoaded)
+  setTimeout(()=>reRenderMath(document.body),1200);
 }
-function getGoalDisp(){if(!curGrade||!curGoal)return'2026 北京卷 · 新课标';const g=GRADES[curGrade];if(!g)return'2026 北京卷 · 新课标';const gl=g.goals.find(x=>x.id===curGoal);return gl?`${curGrade} · ${gl.label}`:'2026 北京卷 · 新课标'}
-function startPractice(){if(!curGrade||!curGoal)return;localStorage.setItem('bjm_grade',curGrade);localStorage.setItem('bjm_goal',curGoal);$('onboarding').style.display='none';$('knowledgePanel').style.display='';$('statsBar').style.display='';$('headerSub').textContent=getGoalDisp();renderTree();toast('选择知识点开始刷题！')}
+function startPractice(){
+  if(!curGrade||!curGoal)return;
+  localStorage.setItem('bjm_grade',curGrade);localStorage.setItem('bjm_goal',curGoal);
+  $('onboarding').style.display='none';
+  $('gradeQuickSwitch').style.display='';
+  $('mainGrid').style.display='';
+  $('knowledgePanel').style.display='';
+  $('hdrGrade').textContent=GRADES[curGrade]?GRADES[curGrade].icon+' '+curGrade:'';
+  $('headerSub').textContent=getGoalDisp();
+  // Fill quick goal dropdown
+  const qgs=$('quickGoalSelect');
+  if(qgs){
+    qgs.innerHTML=GRADES[curGrade].goals.map(gl=>`<option value="${gl.id}"${gl.id===curGoal?' selected':''}>${gl.label} (${gl.desc})</option>`).join('');
+  }
+  renderTree();updSidebar();updPtStats();
+  toast('选择知识点开始刷题！');
+}
 const _selPoint=selPoint;selPoint=function(p){_selPoint(p);if(curGrade)localStorage.setItem('bjm_point',p)};
 document.addEventListener('DOMContentLoaded',init);
 </script>
